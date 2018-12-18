@@ -153,7 +153,23 @@ class Binarizer:
         for y in lowers:
             cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
 
+        xBegin = []
+        xEnd = []
+
+        # Ancora non funziona come dovrebbe...
+        # Devo capire come croppare per bene le righe. Voglio ottenere una riga, poi fare l'isogramma con reduce per
+        # ognuna. Infine disegnare le spezzata tagliando in base a una soglia, in modo simile a prima. Poi vediamo
+        # semmai di sfruttare le euristiche che diceva il professore (tipo so quanti tagli fare, visto che conosco
+        # il numero di parole...
+        for i in range(len(uppers)):
+            print(i)
+            print(uppers[i])
+            print(lowers[i])
+            line = rotated[uppers[i] : uppers[i] + lowers[i], :]
+            cv.imshow('second', line)
+            cv.waitKey(0)
+
         cv.imwrite("result.png", rotated)
 
-        # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Però va fatto PER OGNI riga trovata
+        # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza
