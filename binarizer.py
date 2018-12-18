@@ -1,5 +1,7 @@
 import cv2 as cv
 import os
+import imutils
+import numpy as np
 
 from matplotlib import pyplot as plt
 from PIL import Image
@@ -20,6 +22,8 @@ class Binarizer:
         self.bible = bible
         self.read_path = 'GenesisPages/old/{bible}'.format(bible=self.bible)
         self.save_path = 'GenesisPages/old/{bible}_binarized'.format(bible=self.bible)
+
+    # TODO: decidere come comportarsi con le miniate e i caput, che cambiano colore e risultano difficili da binarizzare.
 
     def binarize(self):
 
@@ -72,4 +76,35 @@ class Binarizer:
 
             print('{img_name} binarized.'.format(img_name=image))
 
-# TODO: decidere come comportarsi con le miniate e i caput, che cambiano colore e risultano difficili da binarizzare.
+    # TODO: automatizzare il modo per ottenere una rotazione corretta.
+    # IDEA: se calcolo quanti sono i pixel antecedenti alla prima parola della prima riga e quanti quelli antecedenti
+    #       alla prima parola dell'ultima riga, posso fare un rapporto tra le quantità e capire di quanto ruotare
+    #       l'immagine per farla venire dritta. È molto rozzo come approccio, ma non credo che abbiamo bisogno di
+    #       una precisione estrema, almeno per le colonne.
+
+    def rotate(self, image_path):
+
+        # Carico l'immagine e la ruoto alla "come viene viene"
+
+        img = cv.imread(image_path)
+        rotated = imutils.rotate(img, 1)
+        cv.imwrite('rotated.png', rotated)
+
+        # Riapro l'immagine con l'altra libreria (sempre per la storia dell'incompatibilità tra le due), la converto
+        # in array e separo i canali (R,G,B,alpha)
+
+        img = Image.open('rotated.png')
+        img = img.convert('RGBA')
+        data = np.array(img)
+        red, green, blue, alpha = data.T
+
+        # Individuo le aree nere e le sostituisco col grigio di fondo (29, 29, 29) che ho trovato debuggando e
+        # leggendo gli elementi dell'array
+
+        black_areas = (red == 0) & (blue == 0) & (green == 0)
+        data[..., :-1][black_areas.T] = (29, 29, 29)
+
+        # Riconverto l'immagine e la sovrascrivo a quella sbagliata
+
+        img = Image.fromarray(data)
+        img.save('rotated.png')
