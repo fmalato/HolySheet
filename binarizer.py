@@ -11,19 +11,15 @@ from PIL import Image
 
 class Binarizer:
 
-    def __init__(self, bible, read_path, save_path):
+    def __init__(self, bible):
         self.bible = bible
-        self.read_path = read_path
-        self.save_path = save_path
+        self.read_path = 'GenesisPages/old/{bible}'.format(bible=self.bible)
+        self.save_path = 'GenesisPages/old/{bible}_binarized'.format(bible=self.bible)
 
     def set_bible(self, bible):
         self.bible = bible
-
-    def set_read_path(self, read_path):
-        self.read_path = read_path
-
-    def set_save_path(self, save_path):
-        self.save_path = save_path
+        self.read_path = 'GenesisPages/old/{bible}'.format(bible=self.bible)
+        self.save_path = 'GenesisPages/old/{bible}_binarized'.format(bible=self.bible)
 
     def binarize(self):
 
