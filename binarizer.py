@@ -162,14 +162,66 @@ class Binarizer:
         # semmai di sfruttare le euristiche che diceva il professore (tipo so quanti tagli fare, visto che conosco
         # il numero di parole...
         for i in range(len(uppers)):
-            print(i)
-            print(uppers[i])
-            print(lowers[i])
-            line = rotated[uppers[i] : uppers[i] + lowers[i], :]
+            #print(i)
+            #print(uppers[i])
+            #print(lowers[i])
+            line = rotated[uppers[i] : lowers[i], :]
             cv.imshow('second', line)
+            # Proiezione verticale
+            H, W = line.shape[:2]
+            print(H)
+            print(W)
+            #lineHistRow = cv.reduce(line, 0, cv.REDUCE_AVG, dtype=cv.CV_32S).reshape(-1)
+            #print(len(lineHistRow))
+            lineHistRow = self.histogram(line)
+
+            print(lineHistRow)
+            thW = 0
+            listBegin = [x for x in range(W - 1) if lineHistRow[x] <= thW and lineHistRow[x + 1] > thW]
+            listEnd = [x for x in range(W - 1) if lineHistRow[x] > thW and lineHistRow[x + 1] <= thW]
+
+            print(listBegin)
+            print(listEnd)
+
+            #for x in listBegin:
+            #    cv.line(rotated, (uppers[i], x), (lowers[i], x), (255, 0, 0), 0)
+
+            #for x in listEnd:
+            #    cv.line(rotated, (uppers[i], x), (lowers[i], x), (0, 255, 0), 0)
+
+            for j in range(len(listBegin)):
+                word = line[uppers[i] : lowers[i], listBegin[j] : listEnd[j]]
+                print(listBegin[j])
+                print(listEnd[j])
+                #cv.imshow('lol', word)
+                #cv.waitKey(0)
+
+            xBegin.append(listBegin)
+            xEnd.append(listEnd)
             cv.waitKey(0)
+
 
         cv.imwrite("result.png", rotated)
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza
+
+
+    def histogram(self, image):
+
+        H, W = image.shape[:2]
+
+        histogram = []
+        for i in range(W):
+            #cv.imshow('image', image[:, i:i+1])
+            #cv.waitKey(0)
+            #histogram[i] = cv.countNonZero(image[:, i : i + 1])
+            histogram.append(0)
+            for j in range(H):
+                print(image[j, i][0])
+                if image[j, i][0] == 0:
+                    continue
+                else:
+                    histogram[i] += 1
+
+        return histogram
