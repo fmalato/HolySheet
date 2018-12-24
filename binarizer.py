@@ -237,5 +237,27 @@ class Binarizer:
         print(image.shape)
         return histogram
 
-    #def calimeroStyle(self, image):
+    def calimero(self, image, cropped):
+
+        method = cv.TM_SQDIFF_NORMED
+
+        # Read the images from the file
+        small_image = cropped
+        large_image = image
+
+        w, h = small_image.shape[:-1]
+
+        result = cv.matchTemplate(small_image, large_image, method)
+
+        threshold = 0.19
+        loc = np.where(result < threshold)
+        for pt in zip(*loc[::-1]):  # Switch collumns and rows
+            if np.all(image[(pt[1] + 9), (pt[0] + 3)]) == 0:
+                cv.rectangle(large_image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+
+        # Save the original image with the rectangle around the match.
+        cv.imwrite('calimered.png', large_image)
+
+        # The image is only displayed if we call this
+        cv.waitKey(0)
 
