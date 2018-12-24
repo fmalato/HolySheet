@@ -1,4 +1,5 @@
 import binarizer as bin
+import cv2 as cv
 
 
 bible = 'Muenchen'

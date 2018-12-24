@@ -135,15 +135,24 @@ class Binarizer:
 
         # Fa l'istogramma, conta i punti neri per ogni riga. Picchi di neri corrispondono alla stessa
         hist = cv.reduce(rotated, 1, cv.REDUCE_AVG).reshape(-1)
+        histVert = self.histogramV(rotated)
 
         # Questa e' la soglia che decide fino a che punto tagliare
         th = 8
+
+        # Limito il numero di righe da poter fare in verticale
+        numLines = 0
+        maxNumLines = 4
 
         # Coordinate dell'immagine, altezza larghezza
         H, W = img.shape[:2]
         # decido di tagliare se il valore dell'istogramma rientra nella soglia
         uppers = [y for y in range(H - 1) if hist[y] <= th and hist[y + 1] > th]
         lowers = [y for y in range(H - 1) if hist[y] > th and hist[y + 1] <= th]
+        columns = [y for y in range(W - 1) if (histVert[y] == 1250 and
+                                               histVert[y] > histVert[y + 1]) or
+                                              (histVert[y] == 1250 and
+                                               histVert[y] > histVert[y - 1])]
 
         # "line" credo che tracci semplicemente la linea, del colore desiderato
         rotated = cv.cvtColor(rotated, cv.COLOR_GRAY2BGR)
@@ -152,6 +161,11 @@ class Binarizer:
 
         for y in lowers:
             cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
+
+        for x in columns:
+            if numLines < maxNumLines:
+                cv.line(rotated, (x, 0), (x, H), (0, 0, 255), 1)
+                numLines += 1
 
         xBegin = []
         xEnd = []
@@ -176,12 +190,12 @@ class Binarizer:
 
             # Stampa a schermo tagliando la riga con i valori ottenuti
 
-            for j in range(len(listBegin)):
+            """for j in range(len(listBegin)):
                 word = line[:, listBegin[j] : listEnd[j]]
                 h, w = word.shape[:2]
                 if (h > 0 and w > 0):
                     cv.imshow('lol', word)
-                    cv.waitKey(0)
+                    cv.waitKey(0)"""
 
             xBegin.append(listBegin)
             xEnd.append(listEnd)
@@ -203,3 +217,25 @@ class Binarizer:
                     histogram[i] += 1
 
         return histogram
+
+    def histogramV(self, image):
+
+        H, W = image.shape[:2]
+
+        th, threshed = cv.threshold(image, 127, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU)
+
+        histogram = []
+
+        for i in range(W):
+            histogram.append(0)
+            for j in range(H):
+                if threshed[j, i] <= 29:
+                    continue
+                else:
+                    histogram[i] += 1
+
+        print(image.shape)
+        return histogram
+
+    #def calimeroStyle(self, image):
+
