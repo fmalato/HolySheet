@@ -8,7 +8,6 @@ binar = bin.Binarizer(bible)
 
 #binar.binarize()
 #binar.rotate('image.png')
-#binar.linesCropping('Gut-027.jpg')
 #img = cv.imread('result.png')
 #cropped = cv.imread('cropped.png')
 #binar.calimero(img, cropped)
@@ -18,4 +17,4 @@ lines = groundTruth.readlines()
 
 dictionary = stringUtils.getWordsCounterDict(lines)
 
-print(dictionary)
+binar.linesCropping('Gut-027.jpg', "_P13_C0", "_P13_C1", dictionary)

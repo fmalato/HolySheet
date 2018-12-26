@@ -110,7 +110,7 @@ class Binarizer:
         img.save('rotated.png')
 
 
-    def linesCropping(self, image_path):
+    def linesCropping(self, image_path, firstColumn, secondColumn, dictionary):
 
         img = cv.imread(image_path)
 
@@ -170,32 +170,42 @@ class Binarizer:
         xBegin = []
         xEnd = []
 
+        leftColumn = rotated[:, columns[0]:columns[1]]
+        rightColumn = rotated[:, columns[2]:columns[3]]
+
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
         # mi sono scritto un istogramma a mano
 
         for i in range(len(uppers)):
-            line = rotated[uppers[i] : lowers[i], :]
+            line = leftColumn[uppers[i] : lowers[i], :]
             cv.imshow('second', line)
             # Proiezione verticale
             H, W = line.shape[:2]
 
             lineHistRow = self.histogram(line)
 
-
             # Valore di soglia
-            thW = 1
+            thW = 2
             listBegin = [x for x in range(W - 1) if lineHistRow[x] <= thW and lineHistRow[x + 1] > thW]
             listEnd = [x for x in range(W - 1) if lineHistRow[x] > thW and lineHistRow[x + 1] <= thW]
 
             # Stampa a schermo tagliando la riga con i valori ottenuti
 
-            """for j in range(len(listBegin)):
+            print(listBegin)
+            print(listEnd)
+
+
+            print(dictionary[firstColumn][i])
+
+            listBegin, listEnd = self.kBestCuts(line, listBegin, listEnd, dictionary[firstColumn][i])
+
+            for j in range(len(listBegin)):
                 word = line[:, listBegin[j] : listEnd[j]]
                 h, w = word.shape[:2]
                 if (h > 0 and w > 0):
                     cv.imshow('lol', word)
-                    cv.waitKey(0)"""
+                    cv.waitKey(0)
 
             xBegin.append(listBegin)
             xEnd.append(listEnd)
@@ -253,3 +263,46 @@ class Binarizer:
 
         # Save the original image with the rectangle around the match.
         cv.imwrite('calimered.png', image)
+
+
+    # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
+    # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
+    # numero di parole della riga, note attraverso il groundTruth. Andra' usato combinatamente con CALIMERO.
+
+    def kBestCuts(self, line, listBegin, listEnd, nWords):
+
+        # nWords = 14
+
+        # Caso in cui non posso tagliare con le parole, ma posso fare calimero
+
+        if nWords is len(listBegin) or nWords > len(listBegin):
+            return listBegin, listEnd
+
+        listDiff = []
+        for i in range(1, len(listBegin)):
+            listDiff.append(listBegin[i] - listEnd[i - 1])
+
+        print(listDiff)
+
+        nCuts = len(listBegin) - nWords
+        while nCuts > 0:
+            for i in range(len(listDiff)):
+                if listDiff[i] is 1:
+                    try:
+                        listEnd[i] = listEnd[i + 1]
+                        listBegin[i + 1] = None
+                        listEnd[i + 1] = None
+                        listDiff[i] = None
+                        break
+                    except IndexError:
+                        break
+            try:
+                listBegin.remove(None)
+                listEnd.remove(None)
+            except ValueError:
+                nCuts -= 1
+                break
+            nCuts -= 1
+
+        return listBegin, listEnd
+
