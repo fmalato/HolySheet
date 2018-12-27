@@ -8,13 +8,13 @@ binar = bin.Binarizer(bible)
 
 #binar.binarize()
 #binar.rotate('image.png')
-#img = cv.imread('result.png')
-#cropped = cv.imread('cropped.png')
-#binar.calimero(img, cropped)
+img = cv.imread('result.png')
+cropped = cv.imread('cropped.png')
+binar.calimero(img, cropped)
 
-groundTruth = open("genesis1-20.txt", "r")
+"""groundTruth = open("genesis1-20.txt", "r")
 lines = groundTruth.readlines()
 
 dictionary = stringUtils.getWordsCounterDict(lines)
 
-binar.linesCropping('Gut-027.jpg', "_P13_C0", "_P13_C1", dictionary)
+binar.linesCropping('Gut-027.jpg', "_P13_C0", "_P13_C1", dictionary)"""

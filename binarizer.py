@@ -257,13 +257,16 @@ class Binarizer:
 
         threshold = 0.21    # best atm: 0.21
         loc = np.where(result < threshold)
-        for pt in zip(*loc[::-1]):  # Switch collumns and rows
+        pts = []
+        for pt in zip(*loc[::-1]):  # Switch columns and rows
             if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
                 cv.rectangle(image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+                pts.append(pt)
 
         # Save the original image with the rectangle around the match.
         cv.imwrite('calimered.png', image)
-        return zip(*loc[::-1])
+
+        return pts
 
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
