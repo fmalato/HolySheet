@@ -113,6 +113,7 @@ class Binarizer:
     def linesCropping(self, image_path, firstColumn, secondColumn, dictionary):
 
         img = cv.imread(image_path)
+        cropped = cv.imread('cropped.png')
 
         # Converte l'immagine in scala di grigi
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -192,16 +193,40 @@ class Binarizer:
 
             # Stampa a schermo tagliando la riga con i valori ottenuti
 
+            listBegin, listEnd = self.kBestCuts(line, listBegin, listEnd, dictionary[firstColumn][i])
+
+            caliList = self.calimero(line, cropped)
+
+            print(caliList)
+
+            for i in range(len(caliList)):
+                try:
+                    listBegin.append(caliList[i][0])
+                    listEnd.append(caliList[i][0] + 6)
+                except IndexError:
+                    break
+
+            listBegin.sort()
+            listEnd.sort()
+
             print(listBegin)
             print(listEnd)
 
+            for i in range(len(caliList)):
+                try:
+                    listEnd[listBegin.index(caliList[i][0]) - 1] -= 6
+                    listBegin[listEnd.index(caliList[i][0] + 6) + 1] += 6
+                except IndexError:
+                    break
 
-            print(dictionary[firstColumn][i])
-
-            listBegin, listEnd = self.kBestCuts(line, listBegin, listEnd, dictionary[firstColumn][i])
+            print(listBegin)
+            print(listEnd)
 
             for j in range(len(listBegin)):
-                word = line[:, listBegin[j] : listEnd[j]]
+                try:
+                    word = line[:, listBegin[j] : listEnd[j]]
+                except IndexError:
+                    break
                 h, w = word.shape[:2]
                 if (h > 0 and w > 0):
                     cv.imshow('lol', word)
@@ -244,7 +269,6 @@ class Binarizer:
                 else:
                     histogram[i] += 1
 
-        print(image.shape)
         return histogram
 
     def calimero(self, image, cropped):
@@ -258,16 +282,17 @@ class Binarizer:
         threshold = 0.21    # best atm: 0.21
         loc = np.where(result < threshold)
         pts = []
-        for pt in zip(*loc[::-1]):  # Switch columns and rows
-            if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
-                cv.rectangle(image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
-                pts.append(pt)
+        for pt in zip(*loc[::-1]):  # Switch collumns and rows
+            try:
+                if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
+                    #cv.rectangle(image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+                    pts.append(pt)
+            except IndexError:
+                break
 
         # Save the original image with the rectangle around the match.
-        cv.imwrite('calimered.png', image)
-
+        #cv.imwrite('calimered.png', image)
         return pts
-
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
     # numero di parole della riga, note attraverso il groundTruth. Andra' usato combinatamente con CALIMERO.
@@ -284,8 +309,6 @@ class Binarizer:
         listDiff = []
         for i in range(1, len(listBegin)):
             listDiff.append(listBegin[i] - listEnd[i - 1])
-
-        print(listDiff)
 
         nCuts = len(listBegin) - nWords
         while nCuts > 0:
