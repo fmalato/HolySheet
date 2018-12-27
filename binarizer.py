@@ -174,6 +174,10 @@ class Binarizer:
         leftColumn = rotated[:, columns[0]:columns[1]]
         rightColumn = rotated[:, columns[2]:columns[3]]
 
+        cv.imshow('colonna sx', leftColumn)
+        cv.imshow('colonna dx', rightColumn)
+        cv.waitKey(0)
+
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
         # mi sono scritto un istogramma a mano
@@ -191,36 +195,28 @@ class Binarizer:
             listBegin = [x for x in range(W - 1) if lineHistRow[x] <= thW and lineHistRow[x + 1] > thW]
             listEnd = [x for x in range(W - 1) if lineHistRow[x] > thW and lineHistRow[x + 1] <= thW]
 
-            # Stampa a schermo tagliando la riga con i valori ottenuti
-
-            listBegin, listEnd = self.kBestCuts(line, listBegin, listEnd, dictionary[firstColumn][i])
-
             caliList = self.calimero(line, cropped)
 
-            print(caliList)
+            for i in range(1, len(caliList)):
+                try:
+                    if caliList[i - 1][0] - caliList[i][0] < 10:
+                        caliList.pop(i)
+                except IndexError:
+                    break
 
             for i in range(len(caliList)):
                 try:
-                    listBegin.append(caliList[i][0])
-                    listEnd.append(caliList[i][0] + 6)
+                    listBegin.append(caliList[i][0] + 6)
+                    listEnd.append(caliList[i][0])
                 except IndexError:
                     break
 
             listBegin.sort()
             listEnd.sort()
 
-            print(listBegin)
-            print(listEnd)
+            # Stampa a schermo tagliando la riga con i valori ottenuti
 
-            for i in range(len(caliList)):
-                try:
-                    listEnd[listBegin.index(caliList[i][0]) - 1] -= 6
-                    listBegin[listEnd.index(caliList[i][0] + 6) + 1] += 6
-                except IndexError:
-                    break
-
-            print(listBegin)
-            print(listEnd)
+            listBegin, listEnd = self.kBestCuts(line, listBegin, listEnd, dictionary[firstColumn][i])
 
             for j in range(len(listBegin)):
                 try:
@@ -279,7 +275,7 @@ class Binarizer:
 
         result = cv.matchTemplate(cropped, image, method)
 
-        threshold = 0.21    # best atm: 0.21
+        threshold = 0.22    # best atm: 0.21
         loc = np.where(result < threshold)
         pts = []
         for pt in zip(*loc[::-1]):  # Switch collumns and rows
@@ -293,6 +289,8 @@ class Binarizer:
         # Save the original image with the rectangle around the match.
         #cv.imwrite('calimered.png', image)
         return pts
+
+
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
     # numero di parole della riga, note attraverso il groundTruth. Andra' usato combinatamente con CALIMERO.
