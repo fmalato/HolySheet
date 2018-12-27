@@ -263,7 +263,7 @@ class Binarizer:
 
         # Save the original image with the rectangle around the match.
         cv.imwrite('calimered.png', image)
-
+        return zip(*loc[::-1])
 
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
