@@ -247,9 +247,11 @@ class Binarizer:
 
         threshold = 0.21    # best atm: 0.21
         loc = np.where(result < threshold)
-        for pt in zip(*loc[::-1]):  # Switch collumns and rows
+        for pt in zip(*loc[::-1]):  # Switch columns and rows
             if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
                 cv.rectangle(image, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
 
         # Save the original image with the rectangle around the match.
         cv.imwrite('calimered.png', image)
+
+        return zip(*loc[::-1])
