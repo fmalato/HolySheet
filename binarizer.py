@@ -119,7 +119,9 @@ class Binarizer:
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
         # Binarizzazione
-        th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU)
+        th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV)
+
+        cv.imwrite('threshed.jpg', threshed)
 
         # Rotazione con minAreaRect on the nozeros
         pts = cv.findNonZero(threshed)
@@ -164,9 +166,23 @@ class Binarizer:
             cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
 
         for x in columns:
-            if numLines < maxNumLines:
+            if (numLines < maxNumLines) and ((x >= 100 and x <= 130 and numLines == 0) or
+                                             (x >= 300 and x <= 400 and numLines == 1) or
+                                             (x >= 470 and x <= 500 and numLines == 2) or
+                                             (x >= 740 and x <= 800 and numLines == 3)):
                 cv.line(rotated, (x, 0), (x, H), (0, 0, 255), 1)
                 numLines += 1
+
+        if (numLines < maxNumLines):
+            cv.line(rotated, (80, 0), (80, H), (0, 0, 255), 1)
+            cv.line(rotated, (340, 0), (340, H), (0, 0, 255), 1)
+            cv.line(rotated, (420, 0), (420, H), (0, 0, 255), 1)
+            cv.line(rotated, (820, 0), (820, H), (0, 0, 255), 1)
+            columns.clear()
+            columns.append(100) # sx
+            columns.append(460)
+            columns.append(300)
+            columns.append(810) # sx
 
         xBegin = []
         xEnd = []

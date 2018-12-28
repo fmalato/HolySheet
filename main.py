@@ -17,4 +17,4 @@ lines = groundTruth.readlines()
 
 dictionary = stringUtils.getWordsCounterDict(lines)
 
-binar.linesCropping('GenesisPages/old/Muenchen/Gut-027.jpg', "_P13_C0", "_P13_C1", dictionary)
+binar.linesCropping('GenesisPages/old/Muenchen/Gut-032.jpg', "_P18_C0", "_P18_C1", dictionary)
