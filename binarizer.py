@@ -110,7 +110,7 @@ class Binarizer:
         img.save('rotated.png')
 
 
-    def linesCropping(self, image_path, firstColumn, secondColumn, dictionary):
+    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary):
 
         img = cv.imread(image_path)
         cropped = cv.imread('cropped.png')
@@ -119,9 +119,7 @@ class Binarizer:
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
         # Binarizzazione
-        th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV)
-
-        cv.imwrite('threshed.jpg', threshed)
+        th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU)
 
         # Rotazione con minAreaRect on the nozeros
         pts = cv.findNonZero(threshed)
@@ -135,6 +133,8 @@ class Binarizer:
         ## Find rotated matrix, do rotation
         M = cv.getRotationMatrix2D((cx, cy), ang, 1.0)
         rotated = cv.warpAffine(threshed, M, (img.shape[1], img.shape[0]))
+
+        cv.imshow('Rotated', rotated)
 
         # Fa l'istogramma, conta i punti neri per ogni riga. Picchi di neri corrispondono alla stessa
         hist = cv.reduce(rotated, 1, cv.REDUCE_AVG).reshape(-1)
@@ -165,27 +165,31 @@ class Binarizer:
         for y in lowers:
             cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
 
-        for x in columns:
-            if (numLines < maxNumLines) and ((x >= 100 and x <= 130 and numLines == 0) or
-                                             (x >= 300 and x <= 400 and numLines == 1) or
-                                             (x >= 470 and x <= 500 and numLines == 2) or
-                                             (x >= 740 and x <= 800 and numLines == 3)):
-                cv.line(rotated, (x, 0), (x, H), (0, 0, 255), 1)
-                numLines += 1
-
-        if (numLines < maxNumLines):
-            cv.line(rotated, (80, 0), (80, H), (0, 0, 255), 1)
-            cv.line(rotated, (340, 0), (340, H), (0, 0, 255), 1)
-            cv.line(rotated, (420, 0), (420, H), (0, 0, 255), 1)
-            cv.line(rotated, (820, 0), (820, H), (0, 0, 255), 1)
-            columns.clear()
-            columns.append(100) # sx
-            columns.append(460)
-            columns.append(300)
-            columns.append(810) # sx
-
         xBegin = []
         xEnd = []
+
+        print(columns)
+
+        # Pagine dispari con colonne non tagliate bene
+        if (len(columns) is not 4 and (nPage % 2) is 1):
+            columns = []
+            columns.append(120)
+            columns.append(500)
+            columns.append(520)
+            columns.append(880)
+
+        # Pagine pari con colonne non tagliate bene
+        if (len(columns) is not 4 and (nPage % 2) is 0):
+            columns = []
+            columns.append(80)
+            columns.append(440)
+            columns.append(480)
+            columns.append(840)
+
+        for x in columns:
+            if numLines < maxNumLines:
+                cv.line(rotated, (x, 0), (x, H), (0, 0, 255), 1)
+                numLines += 1
 
         leftColumn = rotated[:, columns[0]:columns[1]]
         rightColumn = rotated[:, columns[2]:columns[3]]
@@ -199,7 +203,7 @@ class Binarizer:
         # mi sono scritto un istogramma a mano
 
         for i in range(len(uppers)):
-            line = leftColumn[uppers[i] : lowers[i], :]
+            line = rightColumn[uppers[i] : lowers[i], :]
             cv.imshow('second', line)
             # Proiezione verticale
             H, W = line.shape[:2]
@@ -288,6 +292,10 @@ class Binarizer:
         method = cv.TM_SQDIFF_NORMED
 
         w, h = cropped.shape[:-1]
+        wImage, hImage = image.shape[:-1]
+
+        if (w <= wImage or h <= hImage):
+            return []
 
         result = cv.matchTemplate(cropped, image, method)
 
