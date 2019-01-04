@@ -20,10 +20,10 @@ dictionary = stringUtils.getWordsCounterDict(lines)
 # Problemi
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-014.jpg', 14, "_P0_C0", "_P0_C1", dictionary)
 
-# Sistemare segmentazione righe
+# Bene, un pochina di over
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-015.jpg', 15, "_P1_C0", "_P1_C1", dictionary)
 
-# Benino
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-016.jpg', 16, "_P2_C0", "_P2_C1", dictionary)
 
 # Bene
@@ -35,7 +35,7 @@ dictionary = stringUtils.getWordsCounterDict(lines)
 # Sbaglia la rotazione
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-019.jpg', 19, "_P5_C0", "_P5_C1", dictionary)
 
-# Benino, undersegmentation righe
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-020.jpg', 20, "_P6_C0", "_P6_C1", dictionary)
 
 # Problemi di rotazione + undersegmentation
@@ -44,13 +44,13 @@ dictionary = stringUtils.getWordsCounterDict(lines)
 # Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-022.jpg', 22, "_P8_C0", "_P8_C1", dictionary)
 
-# Benino, undersegmentation
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-023.jpg', 23, "_P9_C0", "_P9_C1", dictionary)
 
 # Sbaglia rotazione
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-024.jpg', 24, "_P10_C0", "_P10_C1", dictionary)
 
-# Benino, undersegmentation
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-025.jpg', 25, "_P11_C0", "_P11_C1", dictionary)
 
 # Problemi di rotazione + undersegmentation

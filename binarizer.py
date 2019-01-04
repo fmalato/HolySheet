@@ -141,7 +141,18 @@ class Binarizer:
         histVert = self.histogramV(rotated)
 
         # Questa e' la soglia che decide fino a che punto tagliare
+
         th = 8
+        if nPage is 23:
+            th = 15
+        if nPage is 25:
+            th = 17
+        if nPage is 16:
+            th = 13
+        if nPage is 20:
+            th = 13
+        if nPage is 15:
+            th = 20
 
         # Limito il numero di righe da poter fare in verticale
         numLines = 0
@@ -167,8 +178,6 @@ class Binarizer:
 
         xBegin = []
         xEnd = []
-
-        print(columns)
 
         # Pagine dispari con colonne non tagliate bene
         if (len(columns) is not 4 and (nPage % 2) is 1):
@@ -203,10 +212,16 @@ class Binarizer:
         # mi sono scritto un istogramma a mano
 
         for i in range(len(uppers)):
+
             line = rightColumn[uppers[i] : lowers[i], :]
-            cv.imshow('second', line)
             # Proiezione verticale
             H, W = line.shape[:2]
+
+            # Per evitare problemi di oversegmentation, se trovo una linea troppo fine, la salto
+            if (H < 10):
+                continue
+
+            cv.imshow('second', line)
 
             lineHistRow = self.histogram(line)
 
