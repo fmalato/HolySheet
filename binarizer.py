@@ -2,6 +2,7 @@ import cv2 as cv
 import os
 import imutils
 import numpy as np
+import math
 
 from matplotlib import pyplot as plt
 from PIL import Image
@@ -153,11 +154,6 @@ class Binarizer:
             th = 14
         if nPage is 25:
             th = 17
-
-
-
-
-
 
         # Limito il numero di righe da poter fare in verticale
         numLines = 0
@@ -319,7 +315,6 @@ class Binarizer:
             #    cv.imshow('Word', word)
             #    cv.waitKey(0)
 
-
         return listBegin, listEnd
 
 
@@ -425,3 +420,61 @@ class Binarizer:
 
         return listBegin, listEnd
 
+    def getRotationMatrix(self, center, angle, scale):
+
+        M = []
+        M.append([])
+        M.append([])
+
+        alpha = -(scale * math.cos(angle))
+        beta = scale * math.sin(angle)
+
+        M[0].append(alpha)
+        M[0].append(beta)
+        M[0].append(((1 - alpha) * center[0] - beta * center[1]))
+        M[1].append(-beta)
+        M[1].append(alpha)
+        M[1].append((beta * center[0] + (1 - alpha) * center[1]))
+
+        M = np.asarray(M)
+
+        return M
+
+    def findRotationAngle(self, threshed):
+
+        # Idea: trova il primo punto bianco della prima riga a sx e il primo punto bianco dell'ultima riga a sx,
+        #       calcola le distanze, l'ipotenusa e determina sin, cos dell'angolo. Usa arcsin e arccos per
+        #       trovare l'angolo e restituiscilo
+        H, W = threshed.shape[:2]
+
+        firstWhite = False
+        topLeftX = 0
+        topLeftY = 0
+        bottomLeftX = 0
+        bottomLeftY = 0
+
+        height, width = 0, 0
+        for row in threshed:
+            width = 0
+            for col in row:
+                if col[0] >= 250 and firstWhite == False:
+                    firstWhite = True
+                    topLeftX = width
+                    topLeftY = height
+                width += 1
+            height += 1
+
+        # TODO: da controllare gli indici (tanto per cambiare)
+        firstWhite = False
+        for x in range(W - 1, 0, -1):
+            width = 1250
+            for y in range(H):
+                if threshed[y][x].any() >= 250 and firstWhite == False:
+                    firstWhite = True
+                    bottomLeftX = width
+                    bottomLeftY = height
+                width -= 1
+            height += 1
+
+        print(topLeftX, topLeftY)
+        print(bottomLeftX, bottomLeftY)
