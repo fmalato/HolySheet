@@ -134,8 +134,6 @@ class Binarizer:
         M = cv.getRotationMatrix2D((cx, cy), ang, 1.0)
         rotated = cv.warpAffine(threshed, M, (img.shape[1], img.shape[0]))
 
-        cv.imshow('Rotated', rotated)
-
         # Fa l'istogramma, conta i punti neri per ogni riga. Picchi di neri corrispondono alla stessa
         hist = cv.reduce(rotated, 1, cv.REDUCE_AVG).reshape(-1)
         histVert = self.histogramV(rotated)
@@ -143,16 +141,23 @@ class Binarizer:
         # Questa e' la soglia che decide fino a che punto tagliare
 
         th = 8
-        if nPage is 23:
-            th = 15
-        if nPage is 25:
-            th = 17
-        if nPage is 16:
-            th = 13
-        if nPage is 20:
-            th = 13
         if nPage is 15:
             th = 20
+        if nPage is 16:
+            th = 9
+        if nPage is 17:
+            th = 9
+        if nPage is 20:
+            th = 11
+        if nPage is 23:
+            th = 14
+        if nPage is 25:
+            th = 17
+
+
+
+
+
 
         # Limito il numero di righe da poter fare in verticale
         numLines = 0
@@ -165,8 +170,10 @@ class Binarizer:
         lowers = [y for y in range(H - 1) if hist[y] > th and hist[y + 1] <= th]
         columns = [y for y in range(W - 1) if (histVert[y] == 1250 and
                                                histVert[y] > histVert[y + 1]) or
-                                              (histVert[y] == 1250 and
-                                               histVert[y] > histVert[y - 1])]
+                   (histVert[y] == 1250 and
+                    histVert[y] > histVert[y - 1])]
+
+        self.lineRepairUnder(uppers, lowers, 45)
 
         # "line" credo che tracci semplicemente la linea, del colore desiderato
         rotated = cv.cvtColor(rotated, cv.COLOR_GRAY2BGR)
@@ -175,9 +182,6 @@ class Binarizer:
 
         for y in lowers:
             cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
-
-        xBegin = []
-        xEnd = []
 
         # Pagine dispari con colonne non tagliate bene
         if (len(columns) is not 4 and (nPage % 2) is 1):
@@ -190,83 +194,133 @@ class Binarizer:
         # Pagine pari con colonne non tagliate bene
         if (len(columns) is not 4 and (nPage % 2) is 0):
             columns = []
-            columns.append(80)
+            columns.append(50)
             columns.append(440)
-            columns.append(480)
+            columns.append(450)
             columns.append(840)
 
-        for x in columns:
+        '''
+                for x in columns:
             if numLines < maxNumLines:
                 cv.line(rotated, (x, 0), (x, H), (0, 0, 255), 1)
                 numLines += 1
+        '''
 
         leftColumn = rotated[:, columns[0]:columns[1]]
         rightColumn = rotated[:, columns[2]:columns[3]]
 
-        cv.imshow('colonna sx', leftColumn)
-        cv.imshow('colonna dx', rightColumn)
+        cv.imshow(firstColumn, leftColumn)
+        cv.imshow(secondColumn, rightColumn)
         cv.waitKey(0)
+
+        xBegin = []
+        xEnd = []
+        # Colonna di sinistra
+        for i in range(len(uppers)):
+            listBegin, listEnd = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, i, dictionary,
+                                                       firstColumn)
+            if listBegin is not None:
+                xBegin.append(listBegin)
+                xEnd.append(listEnd)
+
+        cv.imshow(secondColumn, rightColumn)
+        cv.waitKey(0)
+
+        # Colonna di destra
+        for i in range(len(uppers)):
+            listBegin, listEnd = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, i, dictionary,
+                                                       secondColumn)
+            if listBegin is not None:
+                xBegin.append(listBegin)
+                xEnd.append(listEnd)
+
+
+    def lineRepairUnder(self, uppers, lowers, th):
+
+        # Ripara l'under
+        for i in range(len(uppers) - 1):
+            if (uppers[i + 1] - uppers[i] > th):
+                uppers.insert(i + 1, uppers[i] + 25)
+            if (lowers[i + 1] - lowers[i] > th):
+                lowers.insert(i + 1, lowers[i] + 25)
+
+    def lineRepairOver(self, uppers, lowers):
+        # Ripara linee troppo vicine
+        th = 6
+        for i in range(len(uppers) - 1):
+            try:
+                if (uppers[i + 1] - uppers[i] < th):
+                    uppers.remove(uppers[i + 1])
+                    print("Entrato")
+                if (lowers[i + 1] - lowers[i] < th):
+                    lowers.remove(lowers[i + 1])
+                    print("Entrato")
+            except IndexError:
+                break
+
+    def wordSegmentation(self, line, cropped, i, dictionary, nColumn):
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
         # mi sono scritto un istogramma a mano
 
-        for i in range(len(uppers)):
+        # Proiezione verticale
+        H, W = line.shape[:2]
 
-            line = rightColumn[uppers[i] : lowers[i], :]
-            # Proiezione verticale
-            H, W = line.shape[:2]
+        # Per evitare problemi di oversegmentation, se trovo una linea troppo fine, la salto
+        if (H < 5):
+            return None, None
 
-            # Per evitare problemi di oversegmentation, se trovo una linea troppo fine, la salto
-            if (H < 10):
-                continue
+        cv.imshow('Line', line)
+        cv.waitKey(0)
 
-            cv.imshow('second', line)
+        lineHistRow = self.histogram(line)
 
-            lineHistRow = self.histogram(line)
+        # Valore di soglia
+        thW = 2
+        listBegin = [x for x in range(W - 1) if lineHistRow[x] <= thW and lineHistRow[x + 1] > thW]
+        listEnd = [x for x in range(W - 1) if lineHistRow[x] > thW and lineHistRow[x + 1] <= thW]
 
-            # Valore di soglia
-            thW = 2
-            listBegin = [x for x in range(W - 1) if lineHistRow[x] <= thW and lineHistRow[x + 1] > thW]
-            listEnd = [x for x in range(W - 1) if lineHistRow[x] > thW and lineHistRow[x + 1] <= thW]
+        caliList = self.calimero(line, cropped)
 
-            caliList = self.calimero(line, cropped)
+        for j in range(1, len(caliList)):
+            try:
+                if caliList[i - 1][0] - caliList[i][0] < 10:
+                    caliList.pop(i)
+            except IndexError:
+                break
 
-            for i in range(1, len(caliList)):
-                try:
-                    if caliList[i - 1][0] - caliList[i][0] < 10:
-                        caliList.pop(i)
-                except IndexError:
-                    break
+        for j in range(len(caliList)):
+            try:
+                listBegin.append(caliList[i][0] + 6)
+                listEnd.append(caliList[i][0])
+            except IndexError:
+                break
 
-            for i in range(len(caliList)):
-                try:
-                    listBegin.append(caliList[i][0] + 6)
-                    listEnd.append(caliList[i][0])
-                except IndexError:
-                    break
+        listBegin.sort()
+        listEnd.sort()
 
-            listBegin.sort()
-            listEnd.sort()
+        # Stampa a schermo tagliando la riga con i valori ottenuti
 
-            # Stampa a schermo tagliando la riga con i valori ottenuti
+        try:
+            wordsInLine = dictionary[nColumn][i]
+        except IndexError:
+            wordsInLine = 6
 
-            listBegin, listEnd = self.kBestCuts(line, listBegin, listEnd, dictionary[firstColumn][i])
+        listBegin, listEnd = self.kBestCuts(line, listBegin, listEnd, wordsInLine)
 
-            for j in range(len(listBegin)):
-                try:
-                    word = line[:, listBegin[j] : listEnd[j]]
-                except IndexError:
-                    break
-                h, w = word.shape[:2]
-                if (h > 0 and w > 0):
-                    cv.imshow('lol', word)
-                    cv.waitKey(0)
+        for j in range(len(listBegin)):
+            try:
+                word = line[:, listBegin[j]: listEnd[j]]
+            except IndexError:
+                break
+            h, w = word.shape[:2]
+            #if (h > 0 and w > 0):
+            #    cv.imshow('Word', word)
+            #    cv.waitKey(0)
 
-            xBegin.append(listBegin)
-            xEnd.append(listEnd)
 
-        cv.imwrite("result.png", rotated)
+        return listBegin, listEnd
 
 
     def histogram(self, image):
@@ -283,6 +337,7 @@ class Binarizer:
                     histogram[i] += 1
 
         return histogram
+
 
     def histogramV(self, image):
 
@@ -301,6 +356,7 @@ class Binarizer:
                     histogram[i] += 1
 
         return histogram
+
 
     def calimero(self, image, cropped):
 

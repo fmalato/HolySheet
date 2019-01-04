@@ -20,7 +20,7 @@ dictionary = stringUtils.getWordsCounterDict(lines)
 # Problemi
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-014.jpg', 14, "_P0_C0", "_P0_C1", dictionary)
 
-# Bene, un pochina di over
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-015.jpg', 15, "_P1_C0", "_P1_C1", dictionary)
 
 # Bene
@@ -59,7 +59,7 @@ dictionary = stringUtils.getWordsCounterDict(lines)
 # Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-027.jpg', 27, "_P13_C0", "_P13_C1", dictionary)
 
-# Benino
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-028.jpg', 28, "_P14_C0", "_P14_C1", dictionary)
 
 # Bene
