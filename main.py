@@ -21,7 +21,7 @@ for x in range(14, 62, 1):
     image = cv.imread('GenesisPages/old/Muenchen_binarized/Gut-0{x}.png'.format(x=x))
     binar.findRotationAngle(image)
 
-# Problemi
+# Problemi patologici
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-014.jpg', 14, "_P0_C0", "_P0_C1", dictionary)
 
 # Bene
@@ -33,16 +33,16 @@ for x in range(14, 62, 1):
 # Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-017.jpg', 17, "_P3_C0", "_P3_C1", dictionary)
 
-# Sbaglia la rotazione
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-018.jpg', 18, "_P4_C0", "_P4_C1", dictionary)
 
-# Sbaglia la rotazione
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-019.jpg', 19, "_P5_C0", "_P5_C1", dictionary)
 
 # Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-020.jpg', 20, "_P6_C0", "_P6_C1", dictionary)
 
-# Problemi di rotazione + undersegmentation
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-021.jpg', 21, "_P7_C0", "_P7_C1", dictionary)
 
 # Bene
@@ -51,13 +51,13 @@ for x in range(14, 62, 1):
 # Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-023.jpg', 23, "_P9_C0", "_P9_C1", dictionary)
 
-# Sbaglia rotazione
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-024.jpg', 24, "_P10_C0", "_P10_C1", dictionary)
 
 # Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-025.jpg', 25, "_P11_C0", "_P11_C1", dictionary)
 
-# Problemi di rotazione + undersegmentation
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-026.jpg', 26, "_P12_C0", "_P12_C1", dictionary)
 
 # Bene
@@ -69,10 +69,10 @@ for x in range(14, 62, 1):
 # Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-029.jpg', 29, "_P15_C0", "_P15_C1", dictionary)
 
-# Problemi di rotazione
+# Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-030.jpg', 30, "_P16_C0", "_P16_C1", dictionary)
 
-# Problemi di rotazione
+# Segmenta male le parole...
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-031.jpg', 31, "_P17_C0", "_P17_C1", dictionary)
 
 # Bene
