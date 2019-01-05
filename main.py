@@ -17,7 +17,7 @@ lines = groundTruth.readlines()
 
 dictionary = stringUtils.getWordsCounterDict(lines)
 
-image = cv.imread('threshed.jpg')
+image = cv.imread('GenesisPages/old/Muenchen_binarized/Gut-027.png')
 binar.findRotationAngle(image)
 
 # Problemi

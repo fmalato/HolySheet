@@ -62,7 +62,7 @@ class Binarizer:
             # - cv.THRESH_BINARY_INV permette di binarizzare l'immagine e invertire il risultato. cv.THRESH_BINARY
             #   fa la stessa cosa, ma inverte la colorazione dei pixel. Ce ne sono altre, divertitici se vuoi.
 
-            _, thresh1 = cv.threshold(img, 115, 255, cv.THRESH_BINARY_INV) # 55 per Goet, 115 per Muen (sperimentali).
+            _, thresh1 = cv.threshold(img, 70, 255, cv.THRESH_BINARY_INV) # 55 per Goet, 115 per Muen (sperimentali).
             plt.imsave('{save_path}/{img_name}.jpg'.format(save_path=self.save_path, img_name=image), thresh1)
 
             # Qui viene ricaricata l'immagine con l'altra libreria.
@@ -127,6 +127,7 @@ class Binarizer:
         ret = cv.minAreaRect(pts)
 
         (cx, cy), (w, h), ang = ret
+        ang = self.findRotationAngle(threshed)
         if w > h:
             w, h = h, w
             ang += 90
@@ -440,6 +441,7 @@ class Binarizer:
 
         return M
 
+    #TODO: la funzione è corretta, ma bisogna trovare il modo di identificare i due punti per bene
     def findRotationAngle(self, threshed):
 
         # Idea: trova il primo punto bianco della prima riga a sx e il primo punto bianco dell'ultima riga a sx,
@@ -448,33 +450,83 @@ class Binarizer:
         H, W = threshed.shape[:2]
 
         firstWhite = False
+        firstWhite2 = False
         topLeftX = 0
         topLeftY = 0
         bottomLeftX = 0
         bottomLeftY = 0
+        maxNumWhite = 0
 
+        # Cerco il punto in alto a sinistra, idealmente il primo della prima riga
         height, width = 0, 0
-        for row in threshed:
+        for y in range(H):
             width = 0
-            for col in row:
-                if col[0] >= 250 and firstWhite == False:
+            whitePixels = 0
+            for x in range(W):
+                if threshed[y][x][0] >= 200 and firstWhite == False:
                     firstWhite = True
                     topLeftX = width
                     topLeftY = height
+                """elif firstWhite == True and threshed[y][x][0] >= 200 and whitePixels > maxNumWhite:
+                    firstWhite = False
+                    for z in range(W):
+                        if threshed[y][z][0] >= 200 and firstWhite2 == False:
+                            firstWhite2 = True
+                            topLeftX = width
+                            topLeftY = height"""
+                if threshed[y][x][0] >= 200:
+                    whitePixels += 1
                 width += 1
+            if whitePixels > maxNumWhite:
+                maxNumWhite = whitePixels
             height += 1
 
-        # TODO: da controllare gli indici (tanto per cambiare)
+        pt1 = (topLeftX - 2, topLeftY - 2)
+        cv.rectangle(threshed, (topLeftX, topLeftY), (topLeftX+2, topLeftY+2), color=(0, 0, 255), thickness=4)
+
+        # Cerco il punto in basso a sinistra, idealmente il primo dell'ultima riga riga
+        height, width = 1250, 0
+
         firstWhite = False
-        for x in range(W - 1, 0, -1):
-            width = 1250
-            for y in range(H):
-                if threshed[y][x].any() >= 250 and firstWhite == False:
+        for y in range(H - 1, 0, -1):
+            width = 0
+            for x in range(W):
+                if threshed[y][x][0] >= 200 and firstWhite == False:
                     firstWhite = True
                     bottomLeftX = width
                     bottomLeftY = height
-                width -= 1
-            height += 1
+
+                width += 1
+            height -= 1
+
+        # definisco i due punti calcolatiin coordinate cartesiane
+        pt2 = (bottomLeftX - 2, bottomLeftY - 2)
+        pt3 = (bottomLeftX - 2, topLeftY - 2)
+
+        # evidenzio i due punti e il triangolo di rotazione (da togliere quando tutto funzionerà)
+        cv.rectangle(threshed, (bottomLeftX, bottomLeftY), (bottomLeftX+2, bottomLeftY+2), color=(0, 0, 255), thickness=4)
+        cv.line(threshed, pt1, pt2, color=(0, 255, 0), thickness=1)
+        cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=1)
+        cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=1)
+        resized = cv.resize(threshed, (int(900*(14/25)), int(1250*(14/25))))
+        cv.imshow('pt', resized)
+        cv.waitKey(0)
+
+        # calcolo le lunghezze dei cateti
+        d_pt2pt3 = math.fabs(topLeftY - bottomLeftY)
+        d_pt1pt3 = math.fabs(topLeftX - bottomLeftX)
+        # teorema di pitagora per trovare l'ipotenusa
+        d_pt1pt2 = math.sqrt(math.pow(d_pt2pt3, 2) + math.pow(d_pt1pt3, 2))
+        # definizione di coseno
+        angleCos = d_pt2pt3 / d_pt1pt2
+        # converto da radianti il risultato dell'arccos ottenuto prima
+        rotationAngle = math.degrees(math.acos(angleCos))
 
         print(topLeftX, topLeftY)
         print(bottomLeftX, bottomLeftY)
+        print(d_pt1pt2)
+        print(d_pt1pt3)
+        print(d_pt2pt3)
+        print(rotationAngle)
+
+        return rotationAngle
