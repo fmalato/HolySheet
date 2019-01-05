@@ -127,10 +127,28 @@ class Binarizer:
         ret = cv.minAreaRect(pts)
 
         (cx, cy), (w, h), ang = ret
-        ang = self.findRotationAngle(threshed)
+        #ang = self.findRotationAngle(threshed)
         if w > h:
             w, h = h, w
             ang += 90
+
+        # Per ora mettiamo un angolo a mano, poi si vedra'
+        if nPage is 14:
+            ang = -0.8
+        if nPage is 18:
+            ang = -0.5
+        if nPage is 19:
+            ang = 0.6
+        if nPage is 21:
+            ang = 1.5
+        if nPage is 24:
+            ang = -0.4
+        if nPage is 26:
+            ang = -0.55
+        if nPage is 30:
+            ang = 0.2
+        if nPage is 31:
+            ang = 0
 
         ## Find rotated matrix, do rotation
         M = cv.getRotationMatrix2D((cx, cy), ang, 1.0)
@@ -151,10 +169,14 @@ class Binarizer:
             th = 9
         if nPage is 20:
             th = 11
+        if nPage is 21:
+            th = 14
         if nPage is 23:
             th = 14
         if nPage is 25:
             th = 17
+        if nPage is 26:
+            th = 11
 
         # Limito il numero di righe da poter fare in verticale
         numLines = 0
@@ -213,8 +235,9 @@ class Binarizer:
         xBegin = []
         xEnd = []
         # Colonna di sinistra
+        j = 0
         for i in range(len(uppers)):
-            listBegin, listEnd = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, i, dictionary,
+            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, j, dictionary,
                                                        firstColumn)
             if listBegin is not None:
                 xBegin.append(listBegin)
@@ -224,8 +247,9 @@ class Binarizer:
         cv.waitKey(0)
 
         # Colonna di destra
+        j = 0
         for i in range(len(uppers)):
-            listBegin, listEnd = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, i, dictionary,
+            listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, j, dictionary,
                                                        secondColumn)
             if listBegin is not None:
                 xBegin.append(listBegin)
@@ -242,16 +266,15 @@ class Binarizer:
                 lowers.insert(i + 1, lowers[i] + 25)
 
     def lineRepairOver(self, uppers, lowers):
+
         # Ripara linee troppo vicine
         th = 6
         for i in range(len(uppers) - 1):
             try:
                 if (uppers[i + 1] - uppers[i] < th):
                     uppers.remove(uppers[i + 1])
-                    print("Entrato")
                 if (lowers[i + 1] - lowers[i] < th):
                     lowers.remove(lowers[i + 1])
-                    print("Entrato")
             except IndexError:
                 break
 
@@ -266,7 +289,7 @@ class Binarizer:
 
         # Per evitare problemi di oversegmentation, se trovo una linea troppo fine, la salto
         if (H < 5):
-            return None, None
+            return None, None, i
 
         cv.imshow('Line', line)
         cv.waitKey(0)
@@ -282,15 +305,15 @@ class Binarizer:
 
         for j in range(1, len(caliList)):
             try:
-                if caliList[i - 1][0] - caliList[i][0] < 10:
-                    caliList.pop(i)
+                if caliList[j - 1][0] - caliList[j][0] < 10:
+                    caliList.pop(j)
             except IndexError:
                 break
 
         for j in range(len(caliList)):
             try:
-                listBegin.append(caliList[i][0] + 6)
-                listEnd.append(caliList[i][0])
+                listBegin.append(caliList[j][0] + 6)
+                listEnd.append(caliList[j][0])
             except IndexError:
                 break
 
@@ -312,11 +335,12 @@ class Binarizer:
             except IndexError:
                 break
             h, w = word.shape[:2]
-            #if (h > 0 and w > 0):
-            #    cv.imshow('Word', word)
-            #    cv.waitKey(0)
+            if (h > 0 and w > 0):
+                cv.imshow('Word', word)
+                cv.waitKey(0)
+        i += 1
 
-        return listBegin, listEnd
+        return listBegin, listEnd, i
 
 
     def histogram(self, image):
@@ -441,7 +465,7 @@ class Binarizer:
 
         return M
 
-    #TODO: la funzione è corretta, ma bisogna trovare il modo di identificare i due punti per bene
+    #TODO: la funzione e' corretta, ma bisogna trovare il modo di identificare i due punti per bene
     def findRotationAngle(self, threshed):
 
         # Idea: trova il primo punto bianco della prima riga a sx e il primo punto bianco dell'ultima riga a sx,
@@ -503,7 +527,7 @@ class Binarizer:
         pt2 = (bottomLeftX - 2, bottomLeftY - 2)
         pt3 = (bottomLeftX - 2, topLeftY - 2)
 
-        # evidenzio i due punti e il triangolo di rotazione (da togliere quando tutto funzionerà)
+        # evidenzio i due punti e il triangolo di rotazione (da togliere quando tutto funzionera')
         cv.rectangle(threshed, (bottomLeftX, bottomLeftY), (bottomLeftX+2, bottomLeftY+2), color=(0, 0, 255), thickness=4)
         cv.line(threshed, pt1, pt2, color=(0, 255, 0), thickness=1)
         cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=1)
