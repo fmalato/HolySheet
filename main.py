@@ -17,8 +17,9 @@ lines = groundTruth.readlines()
 
 dictionary = stringUtils.getWordsCounterDict(lines)
 
-image = cv.imread('GenesisPages/old/Muenchen_binarized/Gut-027.png')
-binar.findRotationAngle(image)
+for x in range(14, 62, 1):
+    image = cv.imread('GenesisPages/old/Muenchen_binarized/Gut-0{x}.png'.format(x=x))
+    binar.findRotationAngle(image)
 
 # Problemi
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-014.jpg', 14, "_P0_C0", "_P0_C1", dictionary)

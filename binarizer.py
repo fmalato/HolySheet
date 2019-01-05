@@ -441,7 +441,7 @@ class Binarizer:
 
         return M
 
-    #TODO: la funzione è corretta, ma bisogna trovare il modo di identificare i due punti per bene
+    #TODO: la funzione è corretta, ma il calcolo della distanza in basso a sx non fa per qualche motivo
     def findRotationAngle(self, threshed):
 
         # Idea: trova il primo punto bianco della prima riga a sx e il primo punto bianco dell'ultima riga a sx,
@@ -457,58 +457,150 @@ class Binarizer:
         bottomLeftY = 0
         maxNumWhite = 0
 
-        # Cerco il punto in alto a sinistra, idealmente il primo della prima riga
-        height, width = 0, 0
-        for y in range(H):
-            width = 0
+        # Modo complesso: usando le distanze dai due angoli
+        """distances = []
+        topLeftCornerX = 0
+        topLeftCornerY = 0
+        firstWhite = False
+        for x in range(W):
             whitePixels = 0
-            for x in range(W):
-                if threshed[y][x][0] >= 200 and firstWhite == False:
-                    firstWhite = True
-                    topLeftX = width
-                    topLeftY = height
-                """elif firstWhite == True and threshed[y][x][0] >= 200 and whitePixels > maxNumWhite:
-                    firstWhite = False
-                    for z in range(W):
-                        if threshed[y][z][0] >= 200 and firstWhite2 == False:
-                            firstWhite2 = True
-                            topLeftX = width
-                            topLeftY = height"""
+            for y in range(H):
                 if threshed[y][x][0] >= 200:
                     whitePixels += 1
-                width += 1
-            if whitePixels > maxNumWhite:
-                maxNumWhite = whitePixels
-            height += 1
+            if whitePixels >= 10:
+                for y in range(W):
+                    if threshed[y][x][0] >= 200 and not firstWhite:
+                        distances.append((math.sqrt(math.pow(x - topLeftCornerX, 2) + math.pow(y - topLeftCornerY, 2)), x, y))
+                        firstWhite = True
+            firstWhite = False
 
-        pt1 = (topLeftX - 2, topLeftY - 2)
+        dist = np.zeros(len(distances))
+        for x in range(len(distances)):
+            dist[x] = (distances[x][0])
+        minDist = np.argmin(dist)
+
+        topLeftX = distances[int(minDist)][1]
+        topLeftY = distances[int(minDist)][2]
+
+        cv.line(threshed, (topLeftCornerX, topLeftCornerY), (topLeftX, topLeftY) , color=(0, 255, 0), thickness=1)
+
+        distances = []
+        bottomLeftCornerX = 0
+        bottomLeftCornerY = 1249
+        firstWhite = False
+        for x in range(W):
+            whitePixels = 0
+            for y in range(H - 1, 0, -1):
+                if threshed[y][x][0] >= 200:
+                    whitePixels += 1
+            if whitePixels >= 10:
+                for z in range(W):
+                    if threshed[z][x][0] >= 200 and not firstWhite:
+                        distances.append((math.sqrt(math.pow(x - bottomLeftCornerX, 2) + math.pow(bottomLeftCornerY - z, 2)), x, z))
+                        firstWhite = True
+            firstWhite = False
+
+        dist = np.zeros(len(distances))
+        for x in range(len(distances)):
+            dist[x] = (distances[x][0])
+        minDist = np.argmin(dist)
+
+        bottomLeftX = distances[int(minDist)][1]
+        bottomLeftY = distances[int(minDist)][2]
+
+        cv.line(threshed, (bottomLeftCornerX, bottomLeftCornerY), (bottomLeftX, bottomLeftY) , color=(0, 255, 0), thickness=1)
+        
+        # evidenzio i due punti e il triangolo di rotazione (da togliere quando tutto funzionerà)
         cv.rectangle(threshed, (topLeftX, topLeftY), (topLeftX+2, topLeftY+2), color=(0, 0, 255), thickness=4)
+        cv.rectangle(threshed, (bottomLeftX, bottomLeftY), (bottomLeftX+2, bottomLeftY+2), color=(0, 0, 255), thickness=4)
+        cv.rectangle(threshed, (topLeftCornerX, topLeftCornerY), (topLeftCornerX+2, topLeftCornerY+2), color=(255, 0, 0), thickness=4)
+        cv.rectangle(threshed, (bottomLeftCornerX, bottomLeftCornerY), (bottomLeftCornerX+2, bottomLeftCornerY+2), color=(255, 0, 0), thickness=4)"""
+        """cv.line(threshed, pt1, pt2, color=(0, 255, 0), thickness=1)
+        cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=1)
+        cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=1)"""
 
-        # Cerco il punto in basso a sinistra, idealmente il primo dell'ultima riga riga
-        height, width = 1250, 0
+        # Modo semplice: con due righe fissate
+        for x in range(W):
+            if threshed[145][x][0] >= 200 and not firstWhite:
+                firstWhite = True
+                topLeftX = x
+                break
+        topLeftY = 145
+
+        # E' uno schifo, ma funziona in teoria
+        firstWhite = False
+        if topLeftX >= 150:
+            for x in range(W):
+                if threshed[155][x][0] >= 200 and not firstWhite:
+                    firstWhite = True
+                    topLeftX = x
+                    break
+            topLeftY = 155
 
         firstWhite = False
-        for y in range(H - 1, 0, -1):
-            width = 0
+        if topLeftX >= 150:
             for x in range(W):
-                if threshed[y][x][0] >= 200 and firstWhite == False:
+                if threshed[165][x][0] >= 200 and not firstWhite:
                     firstWhite = True
-                    bottomLeftX = width
-                    bottomLeftY = height
+                    topLeftX = x
+                    break
+            topLeftY = 165
 
-                width += 1
-            height -= 1
+        firstWhite = False
+        if topLeftX >= 150:
+            for x in range(W):
+                if threshed[200][x][0] >= 200 and not firstWhite:
+                    firstWhite = True
+                    topLeftX = x
+                    break
+            topLeftY = 200
 
-        # definisco i due punti calcolatiin coordinate cartesiane
-        pt2 = (bottomLeftX - 2, bottomLeftY - 2)
-        pt3 = (bottomLeftX - 2, topLeftY - 2)
+        firstWhite = False
+        for x in range(W):
+            if threshed[540][x][0] >= 200 and not firstWhite:
+                firstWhite = True
+                bottomLeftX = x
+                break
+        bottomLeftY = 540
 
-        # evidenzio i due punti e il triangolo di rotazione (da togliere quando tutto funzionerà)
+        if bottomLeftX >= 150:
+            firstWhite = False
+        for x in range(W):
+            if threshed[550][x][0] >= 200 and not firstWhite:
+                firstWhite = True
+                bottomLeftX = x
+                break
+            bottomLeftY = 550
+
+        if bottomLeftX >= 150:
+            firstWhite = False
+        for x in range(W):
+            if threshed[560][x][0] >= 200 and not firstWhite:
+                firstWhite = True
+                bottomLeftX = x
+                break
+            bottomLeftY = 560
+
+        if bottomLeftX >= 150:
+            firstWhite = False
+        for x in range(W):
+            if threshed[610][x][0] >= 200 and not firstWhite:
+                firstWhite = True
+                bottomLeftX = x
+                break
+            bottomLeftY = 610
+
+
+        cv.rectangle(threshed, (topLeftX, topLeftY), (topLeftX+2, topLeftY+2), color=(0, 0, 255), thickness=4)
         cv.rectangle(threshed, (bottomLeftX, bottomLeftY), (bottomLeftX+2, bottomLeftY+2), color=(0, 0, 255), thickness=4)
+        pt1 = (topLeftX, topLeftY)
+        pt2 = (bottomLeftX, bottomLeftY)
+        pt3 = (bottomLeftX, topLeftY)
         cv.line(threshed, pt1, pt2, color=(0, 255, 0), thickness=1)
         cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=1)
         cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=1)
-        resized = cv.resize(threshed, (int(900*(14/25)), int(1250*(14/25))))
+
+        resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
         cv.imshow('pt', resized)
         cv.waitKey(0)
 
