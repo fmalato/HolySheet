@@ -10,12 +10,12 @@ def getWordsCounterDict(lines):
 
         # Trovo nel txt le righe speciali di inizio paragrafo, saranno chiave nel dizionario
         if lines[i][0] == "_":
-            columnsLengthDict[lines[i][:-2]] = []
+            columnsLengthDict[lines[i][:-1]] = []
 
             # Per ogni riga adesso conto quante parole ci sono e me lo salvo
             j = i + 1
             while j < len(lines) and lines[j][0] is not "_":
-                columnsLengthDict[lines[i][:-2]].append(wordCounter(lines[j]))
+                columnsLengthDict[lines[i][:-1]].append(wordCounter(lines[j]))
                 j += 1
 
             # per risparmiare cicli adesso riparto dal nuovo paragrafo
