@@ -80,6 +80,8 @@ class Binarizer:
 
     def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary):
 
+        user = input('Inserire utente (scelte possibili: Federico, Franceso): ')
+
         img = cv.imread(image_path)
         cropped = cv.imread('cropped.png')
 
@@ -177,14 +179,19 @@ class Binarizer:
         leftColumn = rotated[:, columns[0]:columns[1]]
         rightColumn = rotated[:, columns[2]:columns[3]]
 
-        resizedLeft = cv.resize(leftColumn, (int(450*(13/25)), int(1250*(13/25))))
-        resizedRight = cv.resize(rightColumn, (int(450*(13/25)), int(1250*(13/25))))
+        if user == 'Federico':
+            resizedLeft = cv.resize(leftColumn, (int(450*(13/25)), int(1250*(13/25))))
+            resizedRight = cv.resize(rightColumn, (int(450*(13/25)), int(1250*(13/25))))
 
-        cv.imshow(firstColumn, resizedLeft)
-        cv.moveWindow(firstColumn, 100, 100)
-        cv.imshow(secondColumn, resizedRight)
-        cv.moveWindow(secondColumn, 900, 100)
-        cv.waitKey(0)
+            cv.imshow(firstColumn, resizedLeft)
+            cv.moveWindow(firstColumn, 100, 100)
+            cv.imshow(secondColumn, resizedRight)
+            cv.moveWindow(secondColumn, 900, 100)
+            cv.waitKey(0)
+        else:
+            cv.imshow(firstColumn, leftColumn)
+            cv.imshow(secondColumn, rightColumn)
+            cv.waitKey(0)
 
         # Decommentare per salvare la pagina intera con line segmentation
         #cv.imwrite('GenesisPages/old/MuenchenLineSegmentation/Gut-{nPage}.png'.format(nPage=nPage), rotated)
@@ -196,7 +203,7 @@ class Binarizer:
         j = 0
         for i in range(len(uppers)):
             listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, j, dictionary,
-                                                       firstColumn)
+                                                       firstColumn, user)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -208,7 +215,7 @@ class Binarizer:
         j = 0
         for i in range(len(uppers)):
             listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, j, dictionary,
-                                                       secondColumn)
+                                                       secondColumn, user)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -236,7 +243,7 @@ class Binarizer:
             except IndexError:
                 break
 
-    def wordSegmentation(self, line, cropped, i, dictionary, nColumn):
+    def wordSegmentation(self, line, cropped, i, dictionary, nColumn, user):
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
@@ -250,7 +257,8 @@ class Binarizer:
             return None, None, i
 
         cv.imshow('Line', line)
-        cv.moveWindow('Line', 490, 300)
+        if user == 'Federico':
+            cv.moveWindow('Line', 490, 300)
 
         lineHistRow = self.histogram(line)
 
@@ -295,7 +303,8 @@ class Binarizer:
             h, w = word.shape[:2]
             if (h > 0 and w > 0):
                 cv.imshow('Word', word)
-                cv.moveWindow('Word', 500, 500)
+                if user == 'Federico':
+                    cv.moveWindow('Word', 500, 500)
                 cv.waitKey(0)
         i += 1
 
