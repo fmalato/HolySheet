@@ -19,11 +19,12 @@ dictionary = stringUtils.getWordsCounterDict(lines)
 
 # Problemi patologici su pag14, cattiva segmentazione su pag31
 
-numPage = 14
+numPage = 15
+
 binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                     numPage,
-                    '_P{x}_C{x}'.format(x=(numPage - 14)),
-                    '_P{x}_C{y}'.format(x=(numPage - 14), y=(numPage - 13)),
+                    '_P{x}_C0'.format(x=(numPage - 14)),
+                    '_P{x}_C1'.format(x=(numPage - 14)),
                     dictionary)
 
 
