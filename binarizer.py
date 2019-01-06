@@ -177,8 +177,13 @@ class Binarizer:
         leftColumn = rotated[:, columns[0]:columns[1]]
         rightColumn = rotated[:, columns[2]:columns[3]]
 
-        cv.imshow(firstColumn, leftColumn)
-        cv.imshow(secondColumn, rightColumn)
+        resizedLeft = cv.resize(leftColumn, (int(450*(13/25)), int(1250*(13/25))))
+        resizedRight = cv.resize(rightColumn, (int(450*(13/25)), int(1250*(13/25))))
+
+        cv.imshow(firstColumn, resizedLeft)
+        cv.moveWindow(firstColumn, 100, 100)
+        cv.imshow(secondColumn, resizedRight)
+        cv.moveWindow(secondColumn, 900, 100)
         cv.waitKey(0)
 
         # Decommentare per salvare la pagina intera con line segmentation
@@ -245,6 +250,7 @@ class Binarizer:
             return None, None, i
 
         cv.imshow('Line', line)
+        cv.moveWindow('Line', 490, 300)
 
         lineHistRow = self.histogram(line)
 
@@ -289,6 +295,7 @@ class Binarizer:
             h, w = word.shape[:2]
             if (h > 0 and w > 0):
                 cv.imshow('Word', word)
+                cv.moveWindow('Word', 500, 500)
                 cv.waitKey(0)
         i += 1
 
@@ -442,14 +449,6 @@ class Binarizer:
 
         H, W = threshed.shape[:2]
 
-        firstWhite = False
-        firstWhite2 = False
-        topLeftX = 0
-        topLeftY = 0
-        bottomLeftX = 0
-        bottomLeftY = 0
-        maxNumWhite = 0
-
         # Modo complesso: usando le distanze dai due angoli
         distances = []
         topLeftCornerX = 0
@@ -512,8 +511,8 @@ class Binarizer:
         cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=2)
 
         resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
-        cv.imshow('page', resized)
-        cv.waitKey(0)
+        #cv.imshow('page', resized)
+        #cv.waitKey(0)
 
         # calcolo le lunghezze dei cateti
         d_pt2pt3 = math.fabs(topLeftY - bottomLeftY)
