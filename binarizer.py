@@ -77,39 +77,6 @@ class Binarizer:
 
             print('{img_name} binarized.'.format(img_name=image))
 
-    # TODO: automatizzare il modo per ottenere una rotazione corretta.
-    # IDEA: se calcolo quanti sono i pixel antecedenti alla prima parola della prima riga e quanti quelli antecedenti
-    #       alla prima parola dell'ultima riga, posso fare un rapporto tra le quantita' e capire di quanto ruotare
-    #       l'immagine per farla venire dritta. E' molto rozzo come approccio, ma non credo che abbiamo bisogno di
-    #       una precisione estrema, almeno per le colonne.
-
-    def rotate(self, image_path):
-
-        # Carico l'immagine e la ruoto alla "come viene viene"
-
-        img = cv.imread(image_path)
-        rotated = imutils.rotate(img, 1)
-        cv.imwrite('rotated.png', rotated)
-
-        # Riapro l'immagine con l'altra libreria (sempre per la storia dell'incompatibilita' tra le due), la converto
-        # in array e separo i canali (R,G,B,alpha)
-
-        img = Image.open('rotated.png')
-        img = img.convert('RGBA')
-        data = np.array(img)
-        red, green, blue, alpha = data.T
-
-        # Individuo le aree nere e le sostituisco col grigio di fondo (29, 29, 29) che ho trovato debuggando e
-        # leggendo gli elementi dell'array
-
-        black_areas = (red == 0) & (blue == 0) & (green == 0)
-        data[..., :-1][black_areas.T] = (29, 29, 29)
-
-        # Riconverto l'immagine e la sovrascrivo a quella sbagliata
-
-        img = Image.fromarray(data)
-        img.save('rotated.png')
-
 
     def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary):
 
@@ -127,30 +94,12 @@ class Binarizer:
         ret = cv.minAreaRect(pts)
 
         (cx, cy), (w, h), ang = ret
-        #ang = self.findRotationAngle(threshed)
         if w > h:
             w, h = h, w
             ang += 90
 
-        # Per ora mettiamo un angolo a mano, poi si vedra'
-        if nPage is 14:
-            ang = -0.8
-        if nPage is 18:
-            ang = -0.5
-        if nPage is 19:
-            ang = 0.6
-        if nPage is 21:
-            ang = 1.5
-        if nPage is 24:
-            ang = -0.4
-        if nPage is 26:
-            ang = -0.55
-        if nPage is 30:
-            ang = 0.2
-        if nPage is 31:
-            ang = 0
-
         ## Find rotated matrix, do rotation
+        ang = self.findRotationAngle(image_path)
         M = cv.getRotationMatrix2D((cx, cy), ang, 1.0)
         rotated = cv.warpAffine(threshed, M, (img.shape[1], img.shape[0]))
 
@@ -468,12 +417,28 @@ class Binarizer:
 
         return M
 
-    #TODO: la funzione e' corretta, ma bisogna trovare il modo di identificare i due punti per bene
-    def findRotationAngle(self, threshed):
+
+    def findRotationAngle(self, image_path):
 
         # Idea: trova il primo punto bianco della prima riga a sx e il primo punto bianco dell'ultima riga a sx,
         #       calcola le distanze, l'ipotenusa e determina sin, cos dell'angolo. Usa arcsin e arccos per
         #       trovare l'angolo e restituiscilo
+
+        image = cv.imread(image_path, 0)
+
+        img_path = image_path[image_path.find('Gut'):]
+
+        _, thresh1 = cv.threshold(image, 70, 255, cv.THRESH_BINARY_INV)
+        img_path = img_path[:img_path.find('.jpg')]
+        plt.imsave('temp/{img_name}.jpg'.format(img_name=img_path), thresh1)
+
+        imgx = Image.open('temp/{img_name}.jpg'.format(img_name=img_path)).convert('LA')
+
+        imgx.save('temp/{img_name}.png'.format(img_name=img_path))
+        os.remove('temp/{img_name}.jpg'.format(img_name=img_path))
+
+        threshed = cv.imread('temp/{img_name}.png'.format(img_name=img_path))
+
         H, W = threshed.shape[:2]
 
         firstWhite = False
@@ -485,7 +450,7 @@ class Binarizer:
         maxNumWhite = 0
 
         # Modo complesso: usando le distanze dai due angoli
-        """distances = []
+        distances = []
         topLeftCornerX = 0
         topLeftCornerY = 0
         firstWhite = False
@@ -509,22 +474,21 @@ class Binarizer:
         topLeftX = distances[int(minDist)][1]
         topLeftY = distances[int(minDist)][2]
 
-        cv.line(threshed, (topLeftCornerX, topLeftCornerY), (topLeftX, topLeftY) , color=(0, 255, 0), thickness=1)
-
         distances = []
-        bottomLeftCornerX = 0
-        bottomLeftCornerY = 1249
+        bottomLeftCornerRow = 1250
+        bottomLeftCornerCol = 0
         firstWhite = False
-        for x in range(W):
+        for row in range(H - 1, 0, -1):
             whitePixels = 0
-            for y in range(H - 1, 0, -1):
-                if threshed[y][x][0] >= 200:
+            for col in range(W):
+                if threshed[row][col][0] >= 200:
                     whitePixels += 1
-            if whitePixels >= 10:
-                for z in range(W):
-                    if threshed[z][x][0] >= 200 and not firstWhite:
-                        distances.append((math.sqrt(math.pow(x - bottomLeftCornerX, 2) + math.pow(bottomLeftCornerY - z, 2)), x, z))
+            if whitePixels >= 50:
+                for col2 in range(W):
+                    if threshed[row][col2][0] >= 200 and not firstWhite:
+                        distances.append((math.sqrt(math.pow(bottomLeftCornerRow - row, 2) + math.pow(bottomLeftCornerCol - col2, 2)), row, col2))
                         firstWhite = True
+
             firstWhite = False
 
         dist = np.zeros(len(distances))
@@ -532,103 +496,22 @@ class Binarizer:
             dist[x] = (distances[x][0])
         minDist = np.argmin(dist)
 
-        bottomLeftX = distances[int(minDist)][1]
-        bottomLeftY = distances[int(minDist)][2]
+        bottomLeftX = distances[int(minDist)][2]
+        bottomLeftY = distances[int(minDist)][1]
 
-        cv.line(threshed, (bottomLeftCornerX, bottomLeftCornerY), (bottomLeftX, bottomLeftY) , color=(0, 255, 0), thickness=1)
-        
-        # evidenzio i due punti e il triangolo di rotazione (da togliere quando tutto funzionera')
-        cv.rectangle(threshed, (topLeftX, topLeftY), (topLeftX+2, topLeftY+2), color=(0, 0, 255), thickness=4)
-        cv.rectangle(threshed, (bottomLeftX, bottomLeftY), (bottomLeftX+2, bottomLeftY+2), color=(0, 0, 255), thickness=4)
-        cv.rectangle(threshed, (topLeftCornerX, topLeftCornerY), (topLeftCornerX+2, topLeftCornerY+2), color=(255, 0, 0), thickness=4)
-        cv.rectangle(threshed, (bottomLeftCornerX, bottomLeftCornerY), (bottomLeftCornerX+2, bottomLeftCornerY+2), color=(255, 0, 0), thickness=4)"""
-        """cv.line(threshed, pt1, pt2, color=(0, 255, 0), thickness=1)
-        cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=1)
-        cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=1)"""
-
-        # Modo semplice: con due righe fissate
-        for x in range(W):
-            if threshed[145][x][0] >= 200 and not firstWhite:
-                firstWhite = True
-                topLeftX = x
-                break
-        topLeftY = 145
-
-        # E' uno schifo, ma funziona in teoria
-        firstWhite = False
-        if topLeftX >= 150:
-            for x in range(W):
-                if threshed[155][x][0] >= 200 and not firstWhite:
-                    firstWhite = True
-                    topLeftX = x
-                    break
-            topLeftY = 155
-
-        firstWhite = False
-        if topLeftX >= 150:
-            for x in range(W):
-                if threshed[165][x][0] >= 200 and not firstWhite:
-                    firstWhite = True
-                    topLeftX = x
-                    break
-            topLeftY = 165
-
-        firstWhite = False
-        if topLeftX >= 150:
-            for x in range(W):
-                if threshed[200][x][0] >= 200 and not firstWhite:
-                    firstWhite = True
-                    topLeftX = x
-                    break
-            topLeftY = 200
-
-        firstWhite = False
-        for x in range(W):
-            if threshed[540][x][0] >= 200 and not firstWhite:
-                firstWhite = True
-                bottomLeftX = x
-                break
-        bottomLeftY = 540
-
-        if bottomLeftX >= 150:
-            firstWhite = False
-        for x in range(W):
-            if threshed[550][x][0] >= 200 and not firstWhite:
-                firstWhite = True
-                bottomLeftX = x
-                break
-            bottomLeftY = 550
-
-        if bottomLeftX >= 150:
-            firstWhite = False
-        for x in range(W):
-            if threshed[560][x][0] >= 200 and not firstWhite:
-                firstWhite = True
-                bottomLeftX = x
-                break
-            bottomLeftY = 560
-
-        if bottomLeftX >= 150:
-            firstWhite = False
-        for x in range(W):
-            if threshed[610][x][0] >= 200 and not firstWhite:
-                firstWhite = True
-                bottomLeftX = x
-                break
-            bottomLeftY = 610
-
-
+        cv.line(threshed, (topLeftCornerX, topLeftCornerY), (topLeftX, topLeftY) , color=(0, 255, 0), thickness=1)
+        cv.line(threshed, (bottomLeftCornerCol, bottomLeftCornerRow), (bottomLeftX, bottomLeftY) , color=(0, 255, 0), thickness=1)
         cv.rectangle(threshed, (topLeftX, topLeftY), (topLeftX+2, topLeftY+2), color=(0, 0, 255), thickness=4)
         cv.rectangle(threshed, (bottomLeftX, bottomLeftY), (bottomLeftX+2, bottomLeftY+2), color=(0, 0, 255), thickness=4)
         pt1 = (topLeftX, topLeftY)
         pt2 = (bottomLeftX, bottomLeftY)
         pt3 = (bottomLeftX, topLeftY)
-        cv.line(threshed, pt1, pt2, color=(0, 255, 0), thickness=1)
-        cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=1)
-        cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=1)
+        cv.line(threshed, pt1, pt2, color=(0, 255, 0), thickness=2)
+        cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=2)
+        cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=2)
 
-        #resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
-        cv.imshow('pt', threshed)
+        resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
+        cv.imshow('page', resized)
         cv.waitKey(0)
 
         # calcolo le lunghezze dei cateti
@@ -640,12 +523,16 @@ class Binarizer:
         angleCos = d_pt2pt3 / d_pt1pt2
         # converto da radianti il risultato dell'arccos ottenuto prima
         rotationAngle = math.degrees(math.acos(angleCos))
+        if bottomLeftX > topLeftX:
+            rotationAngle = - rotationAngle
 
-        print(topLeftX, topLeftY)
-        print(bottomLeftX, bottomLeftY)
-        print(d_pt1pt2)
-        print(d_pt1pt3)
-        print(d_pt2pt3)
-        print(rotationAngle)
+        print('topLeft: ' + str(topLeftX) + ' ' + str(topLeftY))
+        print('bottomLeft: ' + str(bottomLeftX) + ' ' + str(bottomLeftY))
+        print('d_pt1pt2: ' + str(d_pt1pt2))
+        print('d_pt1pt3: ' + str(d_pt1pt3))
+        print('d_pt2pt3: ' + str(d_pt2pt3))
+        print('rotationAngle: ' + str(rotationAngle))
+
+        os.remove('temp/{img_name}.png'.format(img_name=img_path))
 
         return rotationAngle

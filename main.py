@@ -17,10 +17,6 @@ lines = groundTruth.readlines()
 
 dictionary = stringUtils.getWordsCounterDict(lines)
 
-#for x in range(14, 33, 1): # Il nostro ground truth finisce a pagina 33 compresa (genesi 1-20)
-#    image = cv.imread('GenesisPages/old/Muenchen_binarized/Gut-0{x}.png'.format(x=x))
-#    binar.findRotationAngle(image)
-
 # Problemi patologici
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-014.jpg', 14, "_P0_C0", "_P0_C1", dictionary)
 
@@ -61,7 +57,7 @@ dictionary = stringUtils.getWordsCounterDict(lines)
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-026.jpg', 26, "_P12_C0", "_P12_C1", dictionary)
 
 # Bene
-#binar.linesCropping('GenesisPages/old/Muenchen/Gut-027.jpg', 27, "_P13_C0", "_P13_C1", dictionary)
+binar.linesCropping('GenesisPages/old/Muenchen/Gut-027.jpg', 27, "_P13_C0", "_P13_C1", dictionary)
 
 # Bene
 #binar.linesCropping('GenesisPages/old/Muenchen/Gut-028.jpg', 28, "_P14_C0", "_P14_C1", dictionary)
