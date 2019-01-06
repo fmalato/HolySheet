@@ -342,7 +342,7 @@ class Binarizer:
 
         result = cv.matchTemplate(cropped, image, method)
 
-        threshold = 0.76    # best atm: 0.21
+        threshold = 0.76    # best atm: 0.76
         loc = np.where(result < threshold)
         pts = []
         for pt in zip(*loc[::-1]):  # Switch columns and rows
