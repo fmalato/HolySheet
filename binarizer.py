@@ -80,7 +80,7 @@ class Binarizer:
 
     def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary):
 
-        user = input('Inserire utente (scelte possibili: Federico, Franceso): ')
+        user = input('Inserire utente (scelte possibili: Federico, Francesco): ')
 
         img = cv.imread(image_path)
         cropped = cv.imread('cropped.png')
