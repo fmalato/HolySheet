@@ -115,19 +115,27 @@ class Binarizer:
         if nPage is 15:
             th = 20
         if nPage is 16:
-            th = 9
-        if nPage is 17:
+            th = 13
+        if nPage is 18:
             th = 9
         if nPage is 20:
-            th = 11
+            th = 7
         if nPage is 21:
             th = 14
         if nPage is 23:
-            th = 14
+            th = 11
         if nPage is 25:
-            th = 17
+            th = 15
         if nPage is 26:
             th = 11
+        if nPage is 27:
+            th = 5
+        if nPage is 30:
+            th = 9
+        if nPage is 31:
+            th = 14
+        if nPage is 33:
+            th = 8
 
         # Limito il numero di righe da poter fare in verticale
         numLines = 0
@@ -168,13 +176,6 @@ class Binarizer:
             columns.append(440)
             columns.append(450)
             columns.append(840)
-
-        '''
-                for x in columns:
-            if numLines < maxNumLines:
-                cv.line(rotated, (x, 0), (x, H), (0, 0, 255), 1)
-                numLines += 1
-        '''
 
         leftColumn = rotated[:, columns[0]:columns[1]]
         rightColumn = rotated[:, columns[2]:columns[3]]
@@ -519,7 +520,7 @@ class Binarizer:
         cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=2)
         cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=2)
 
-        resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
+        #resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
         #cv.imshow('page', resized)
         #cv.waitKey(0)
 
@@ -535,12 +536,14 @@ class Binarizer:
         if bottomLeftX > topLeftX:
             rotationAngle = - rotationAngle
 
+        '''
         print('topLeft: ' + str(topLeftX) + ' ' + str(topLeftY))
         print('bottomLeft: ' + str(bottomLeftX) + ' ' + str(bottomLeftY))
         print('d_pt1pt2: ' + str(d_pt1pt2))
         print('d_pt1pt3: ' + str(d_pt1pt3))
         print('d_pt2pt3: ' + str(d_pt2pt3))
         print('rotationAngle: ' + str(rotationAngle))
+        '''
 
         os.remove('temp/{img_name}.png'.format(img_name=img_path))
 
