@@ -232,6 +232,10 @@ class Binarizer:
         cv.imshow(secondColumn, rightColumn)
         cv.waitKey(0)
 
+        # Decommentare per salvare la pagina intera con line segmentation
+        #cv.imwrite('GenesisPages/old/MuenchenLineSegmentation/Gut-{nPage}.png'.format(nPage=nPage), rotated)
+        #return
+
         xBegin = []
         xEnd = []
         # Colonna di sinistra
@@ -243,8 +247,8 @@ class Binarizer:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
 
-        cv.imshow(secondColumn, rightColumn)
-        cv.waitKey(0)
+        #cv.imshow(secondColumn, rightColumn)
+        #cv.waitKey(0)
 
         # Colonna di destra
         j = 0
@@ -292,7 +296,6 @@ class Binarizer:
             return None, None, i
 
         cv.imshow('Line', line)
-        cv.waitKey(0)
 
         lineHistRow = self.histogram(line)
 
@@ -534,7 +537,7 @@ class Binarizer:
 
         cv.line(threshed, (bottomLeftCornerX, bottomLeftCornerY), (bottomLeftX, bottomLeftY) , color=(0, 255, 0), thickness=1)
         
-        # evidenzio i due punti e il triangolo di rotazione (da togliere quando tutto funzionerà)
+        # evidenzio i due punti e il triangolo di rotazione (da togliere quando tutto funzionera')
         cv.rectangle(threshed, (topLeftX, topLeftY), (topLeftX+2, topLeftY+2), color=(0, 0, 255), thickness=4)
         cv.rectangle(threshed, (bottomLeftX, bottomLeftY), (bottomLeftX+2, bottomLeftY+2), color=(0, 0, 255), thickness=4)
         cv.rectangle(threshed, (topLeftCornerX, topLeftCornerY), (topLeftCornerX+2, topLeftCornerY+2), color=(255, 0, 0), thickness=4)
@@ -624,8 +627,8 @@ class Binarizer:
         cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=1)
         cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=1)
 
-        resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
-        cv.imshow('pt', resized)
+        #resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
+        cv.imshow('pt', threshed)
         cv.waitKey(0)
 
         # calcolo le lunghezze dei cateti
