@@ -78,9 +78,10 @@ class Binarizer:
             print('{img_name} binarized.'.format(img_name=image))
 
 
-    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary):
+    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles):
 
-        user = input('Inserire utente (scelte possibili: Federico, Francesco): ')
+        #user = input('Inserire utente (scelte possibili: Federico, Francesco): ')
+        user = ' '
 
         img = cv.imread(image_path)
         cropped = cv.imread('cropped.png')
@@ -100,8 +101,9 @@ class Binarizer:
             w, h = h, w
             ang += 90
 
-        ## Find rotated matrix, do rotation
-        ang = self.findRotationAngle(image_path)
+        # carica l'angolo giusto, trovato con findRotationAngle e salvato in precedenza in json
+        ang = angles[str(nPage)]
+
         M = cv.getRotationMatrix2D((cx, cy), ang, 1.0)
         rotated = cv.warpAffine(threshed, M, (img.shape[1], img.shape[0]))
 
@@ -153,7 +155,7 @@ class Binarizer:
 
         self.lineRepairUnder(uppers, lowers, 45)
 
-        # "line" credo che tracci semplicemente la linea, del colore desiderato
+        # traccia semplicemente la linea, del colore desiderato
         rotated = cv.cvtColor(rotated, cv.COLOR_GRAY2BGR)
         for y in uppers:
             cv.line(rotated, (0, y), (W, y), (255, 0, 0), 1)
@@ -203,6 +205,7 @@ class Binarizer:
         # Colonna di sinistra
         j = 0
         for i in range(len(uppers)):
+
             listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, j, dictionary,
                                                        firstColumn, user)
             if listBegin is not None:
@@ -275,7 +278,7 @@ class Binarizer:
                 if caliList[j - 1][0] - caliList[j][0] < 10:
                     caliList.pop(j)
             except IndexError:
-                break
+                continue
 
         for j in range(len(caliList)):
             try:
@@ -291,6 +294,7 @@ class Binarizer:
 
         try:
             wordsInLine = dictionary[nColumn][i]
+            print(wordsInLine)
         except IndexError:
             wordsInLine = 6
 
@@ -382,17 +386,43 @@ class Binarizer:
 
     def kBestCuts(self, line, listBegin, listEnd, nWords):
 
-        # nWords = 14
+        # Caso in cui non posso tagliare con le parole
 
-        # Caso in cui non posso tagliare con le parole, ma posso fare calimero
+        if(len(listEnd) > len(listBegin)):
+            listEnd.pop(0)
 
         if nWords is len(listBegin) or nWords > len(listBegin):
             return listBegin, listEnd
 
         listDiff = []
+
         for i in range(1, len(listBegin)):
             listDiff.append(listBegin[i] - listEnd[i - 1])
 
+        orderedList = sorted(listDiff)
+
+        nCuts = len(listBegin) - nWords
+        for k in range(nCuts):
+            i = listDiff.index(orderedList[0])
+            try:
+                listEnd[i] = listEnd[i + 1]
+                listBegin[i + 1] = None
+                listEnd[i + 1] = None
+                listDiff[i] = None
+            except IndexError:
+                continue
+
+            listBegin.remove(None)
+            listEnd.remove(None)
+
+            listDiff = []
+
+            for i in range(1, len(listBegin)):
+                listDiff.append(listBegin[i] - listEnd[i - 1])
+
+            orderedList = sorted(listDiff)
+
+        '''
         nCuts = len(listBegin) - nWords
         while nCuts > 0:
             for i in range(len(listDiff)):
@@ -412,6 +442,8 @@ class Binarizer:
                 nCuts -= 1
                 break
             nCuts -= 1
+
+        '''
 
         return listBegin, listEnd
 
