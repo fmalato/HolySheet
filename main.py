@@ -10,7 +10,10 @@ binar = bin.Binarizer(bible)
 
 """img = cv.imread('threshed.png')
 cropped = cv.imread('cropped.png')
-binar.calimero(img, cropped)"""
+cropped2 = cv.imread('cropped4.png')
+#pts = binar.calimero(img, cropped)
+pts = binar.two_way_calimero(img, cropped, cropped2)
+print(pts)"""
 
 with open('groundTruthDictionary.json') as groundTruth:
     dictionary = json.load(groundTruth)

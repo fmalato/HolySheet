@@ -365,13 +365,13 @@ class Binarizer:
         for pt in zip(*loc[::-1]):  # Switch columns and rows
             try:
                 if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
-                    #cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
+                    cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
                     pts.append(pt)
             except IndexError:
                 break
 
         # Save the original image with the rectangle around the match.
-        #cv.imwrite('calimered.png', image)
+        cv.imwrite('calimered.png', image)
 
         return pts
 
@@ -548,3 +548,44 @@ class Binarizer:
         os.remove('temp/{img_name}.png'.format(img_name=img_path))
 
         return rotationAngle
+
+    def two_way_calimero(self, image, cropped1, cropped2):
+
+        method = cv.TM_SQDIFF_NORMED
+
+        result = cv.matchTemplate(cropped1, image, method)
+
+        threshold = 0.76    # best atm: 0.76
+        loc = np.where(result < threshold)
+        pts = []
+        for pt in zip(*loc[::-1]):  # Switch columns and rows
+            try:
+                if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
+                    pts.append(pt)
+            except IndexError:
+                break
+
+        result = cv.matchTemplate(cropped2, image, method)
+
+        threshold2 = 0.3
+        loc = np.where(result < threshold2)
+        pts2 = []
+        for pt in zip(*loc[::-1]):  # Switch columns and rows
+            try:
+                if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
+                    pts2.append(pt)
+            except IndexError:
+                break
+
+        finalPts = [pt for pt in pts2 if pt not in pts]
+
+        for pt in pts:
+            finalPts.append(pt)
+
+        for pt in finalPts:
+            cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
+
+        # Save the original image with the rectangle around the match.
+        cv.imwrite('two_way_calimered.png', image)
+
+        return finalPts
