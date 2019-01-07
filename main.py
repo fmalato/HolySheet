@@ -21,7 +21,7 @@ with open('groundTruthDictionary.json') as groundTruth:
 
 #for numPage in range(14, 33):
 
-numPage = 33
+numPage = 14
 
 binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                     numPage,
