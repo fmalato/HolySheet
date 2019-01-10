@@ -337,12 +337,12 @@ class Binarizer:
                 word = line[:, listBegin[j]: listEnd[j]]
             except IndexError:
                 break
-            if str((nColumn, i, j)) in etPositions.keys():
-                cv.imwrite('et/{nColumn}_{i}_{j}.png'.format(nColumn=nColumn, i=i, j=j), word)
 
             h, w = word.shape[:2]
             if (h > 0 and w > 0):
-                cv.imshow('Word', word)
+                if str((nColumn, i, j)) in etPositions.keys():
+                    cv.imwrite('et/{nColumn}_{i}_{j}.png'.format(nColumn=nColumn, i=i, j=j), word)
+                #cv.imshow('Word', word)
                 if user == 'Federico':
                     cv.moveWindow('Word', 500, 500)
                 #cv.waitKey(0)

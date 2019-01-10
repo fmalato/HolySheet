@@ -12,18 +12,18 @@ binar = bin.Binarizer(bible)
 cropped = cv.imread('cropped.png')
 binar.calimero(img, cropped)"""
 
-with open('groundTruthDictionary.json') as groundTruth:
+with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
     dictionary = json.load(groundTruth)
 
-with open('angles.json') as aj:
+with open('JsonUtils/angles.json') as aj:
     angles = json.load(aj)
 
-with open('etPositions.json') as et:
+with open('JsonUtils/etPositions.json') as et:
     etPositions = json.load(et)
 
 #for numPage in range(14, 34):
 
-numPage = 14
+numPage = 19
 
 binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                     numPage,
