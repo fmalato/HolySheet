@@ -1,8 +1,8 @@
 _P0_C0
 
 in principio creavit Deus caelum
-et terram terra autem erat inanis et 
-vacua et tenebrae super faciem abyssi 
+et terram terra autem erat inanis et
+vacua et tenebrae erat super faciem abyssi
 et spiritus Dei ferebatur super aquas 
 dixitque Deus fiat lux et facta est lux 
 et vidit Deus lucem quod esset bona et 
