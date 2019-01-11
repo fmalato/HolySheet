@@ -1,6 +1,6 @@
 import cv2 as cv
 import os
-#import imutils
+import imutils
 import numpy as np
 import math
 
@@ -105,7 +105,7 @@ class Binarizer:
 
 
 
-    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles):
+    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles, etPositions):
 
         #user = input('Inserire utente (scelte possibili: Federico, Francesco): ')
         user = ' '
@@ -224,7 +224,6 @@ class Binarizer:
         else:
             cv.imshow(firstColumn, leftColumn)
             cv.imshow(secondColumn, rightColumn)
-
             cv.waitKey(0)
 
         # Decommentare per salvare la pagina intera con line segmentation
@@ -238,7 +237,7 @@ class Binarizer:
         for i in range(len(uppers)):
 
             listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
-                                                       firstColumn, user)
+                                                       firstColumn, user, etPositions)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -250,7 +249,7 @@ class Binarizer:
         j = 0
         for i in range(len(uppers)):
             listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
-                                                       secondColumn, user)
+                                                       secondColumn, user, etPositions)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -278,7 +277,7 @@ class Binarizer:
             except IndexError:
                 break
 
-    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user):
+    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user, etPositions):
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
@@ -338,12 +337,15 @@ class Binarizer:
                 word = line[:, listBegin[j]: listEnd[j]]
             except IndexError:
                 break
+
             h, w = word.shape[:2]
             if (h > 0 and w > 0):
-                cv.imshow('Word', word)
+                if str((nColumn, i, j)) in etPositions.keys():
+                    cv.imwrite('et/{nColumn}_{i}_{j}.png'.format(nColumn=nColumn, i=i, j=j), word)
+                #cv.imshow('Word', word)
                 if user == 'Federico':
                     cv.moveWindow('Word', 500, 500)
-                cv.waitKey(0)
+                #cv.waitKey(0)
         i += 1
 
         return listBegin, listEnd, i
@@ -402,13 +404,13 @@ class Binarizer:
         for pt in zip(*loc[::-1]):  # Switch columns and rows
             try:
                 if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
-                    cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
+                    #cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
                     pts.append(pt)
             except IndexError:
                 break
 
         # Save the original image with the rectangle around the match.
-        cv.imwrite('calimered.png', image)
+        #cv.imwrite('calimered.png', image)
 
         return pts
 
