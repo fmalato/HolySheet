@@ -23,7 +23,7 @@ with open('JsonUtils/etPositions.json') as et:
 
 #for numPage in range(14, 34):
 
-numPage = 19
+numPage = 14
 
 binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                     numPage,
