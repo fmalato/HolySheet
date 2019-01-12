@@ -144,10 +144,16 @@ with open('JsonUtils/10mostFrequentWords.json') as mf:
 
 # tupla = ('_P0_C0', 20, 3)
 
-# Per adesso prendiamo soltanto "et" -> mostFrequentWords[0]
+for frequentWord in mostFrequentWords:
+    with open('JsonUtils/{frequentWord}Positions.json'.format(frequentWord=frequentWord), 'w') as fw:
+        json.dump(getDictWordPosition(lines, frequentWord), fw)
 
+
+'''
 etDict = getDictWordPosition(lines, mostFrequentWords[0])
 
 with open('JsonUtils/etPositions.json', 'w') as et:
     json.dump(etDict, et)
+'''
+
 
