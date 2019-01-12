@@ -1,6 +1,6 @@
 import cv2 as cv
 import os
-import imutils
+#import imutils
 import numpy as np
 import math
 
@@ -105,7 +105,7 @@ class Binarizer:
 
 
 
-    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles, etPositions):
+    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles, wordPositions, frequentWord):
 
         #user = input('Inserire utente (scelte possibili: Federico, Francesco): ')
         user = ' '
@@ -212,7 +212,7 @@ class Binarizer:
         leftColumn = rotated[:, columns[0]:columns[1]]
         rightColumn = rotated[:, columns[2]:columns[3]]
 
-        if user == 'Federico':
+        if user == 'Federico' and frequentWord is None:
             resizedLeft = cv.resize(leftColumn, (int(450*(13/25)), int(1250*(13/25))))
             resizedRight = cv.resize(rightColumn, (int(450*(13/25)), int(1250*(13/25))))
 
@@ -221,10 +221,9 @@ class Binarizer:
             cv.imshow(secondColumn, resizedRight)
             cv.moveWindow(secondColumn, 900, 100)
             cv.waitKey(0)
-        else:
+        elif frequentWord is None:
             cv.imshow(firstColumn, leftColumn)
             cv.imshow(secondColumn, rightColumn)
-            cv.waitKey(0)
 
         # Decommentare per salvare la pagina intera con line segmentation
         #cv.imwrite('GenesisPages/old/MuenchenLineSegmentation/Gut-{nPage}.png'.format(nPage=nPage), rotated)
@@ -237,7 +236,7 @@ class Binarizer:
         for i in range(len(uppers)):
 
             listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
-                                                       firstColumn, user, etPositions)
+                                                       firstColumn, user, wordPositions, frequentWord)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -249,7 +248,7 @@ class Binarizer:
         j = 0
         for i in range(len(uppers)):
             listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
-                                                       secondColumn, user, etPositions)
+                                                       secondColumn, user, wordPositions, frequentWord)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -277,7 +276,7 @@ class Binarizer:
             except IndexError:
                 break
 
-    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user, etPositions):
+    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user, wordPositions, frequentWord):
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
@@ -290,9 +289,10 @@ class Binarizer:
         if (H < 5):
             return None, None, i
 
-        cv.imshow('Line', line)
-        if user == 'Federico':
-            cv.moveWindow('Line', 490, 300)
+        if frequentWord is None:
+            cv.imshow('Line', line)
+            if user == 'Federico':
+                cv.moveWindow('Line', 490, 300)
 
         lineHistRow = self.histogram(line)
 
@@ -340,12 +340,16 @@ class Binarizer:
 
             h, w = word.shape[:2]
             if (h > 0 and w > 0):
-                if str((nColumn, i, j)) in etPositions.keys():
-                    cv.imwrite('et/{nColumn}_{i}_{j}.png'.format(nColumn=nColumn, i=i, j=j), word)
-                #cv.imshow('Word', word)
-                if user == 'Federico':
-                    cv.moveWindow('Word', 500, 500)
-                #cv.waitKey(0)
+                if frequentWord is None:
+                    cv.imshow('Word', word)
+                    if user == 'Federico':
+                        cv.moveWindow('Word', 500, 500)
+                    cv.waitKey(0)
+
+                elif str((nColumn, i, j)) in wordPositions.keys():
+                    cv.imwrite('frequentWords/{frequentWord}/{nColumn}_{i}_{j}.png'.format(frequentWord=frequentWord,
+                                                                                           nColumn=nColumn, i=i, j=j),
+                               word)
         i += 1
 
         return listBegin, listEnd, i
