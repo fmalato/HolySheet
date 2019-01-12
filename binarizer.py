@@ -3,7 +3,9 @@ import os
 import imutils
 import numpy as np
 import math
+import scipy
 
+from scipy import ndimage
 from matplotlib import pyplot as plt
 from PIL import Image
 
@@ -50,7 +52,7 @@ class Binarizer:
             # So che e' un metodo molto macchinoso, ma va fatto una sola volta, quindi non ho badato molto
             # all'ottimizzazione. Se ti viene in mente qualcosa di meglio, ben venga!
 
-            img = cv.imread('{read_path}/{img_name}.jpg'.format(read_path=self.read_path, img_name=image), 0)
+            img = cv.imread('{read_path}/{img_name}.jpg'.format(read_path=self.read_path, img_name=image))
 
             # threshold() funziona cosi':
             # - img indica l'immagine di cui fare il threshold.
@@ -62,18 +64,10 @@ class Binarizer:
             # - cv.THRESH_BINARY_INV permette di binarizzare l'immagine e invertire il risultato. cv.THRESH_BINARY
             #   fa la stessa cosa, ma inverte la colorazione dei pixel. Ce ne sono altre, divertitici se vuoi.
 
-            _, thresh1 = cv.threshold(img, 70, 255, cv.THRESH_BINARY_INV) # 55 per Goet, 115 per Muen (sperimentali).
-            plt.imsave('{save_path}/{img_name}.jpg'.format(save_path=self.save_path, img_name=image), thresh1)
+            gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-            # Qui viene ricaricata l'immagine con l'altra libreria.
-            imgx = Image.open('{save_path}/{img_name}.jpg'.format(save_path=self.save_path, img_name=image)).convert('LA')
-
-            imgx.save('{save_path}/{img_name}.png'.format(save_path=self.save_path, img_name=image))
-
-            # A questo punto ci sono due copie di ciascuna immagine: una gialla e viola in .jpg e una grigia e
-            # bianca in .png. Ci e' utile la seconda, quindi vengono eliminate le immagini inutili.
-
-            os.remove('{save_path}/{img_name}.jpg'.format(save_path=self.save_path, img_name=image))
+            _, thresh1 = cv.threshold(gray, 120, 255, cv.THRESH_BINARY_INV)
+            cv.imwrite('{save_path}/{img_name}.png'.format(save_path=self.save_path, img_name=image), thresh1)
 
             print('{img_name} binarized.'.format(img_name=image))
 
@@ -85,12 +79,15 @@ class Binarizer:
 
         img = cv.imread(image_path)
         cropped = cv.imread('cropped.png')
+        cropped2 = cv.imread('cropped4.png')
 
         # Converte l'immagine in scala di grigi
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
         # Binarizzazione
         th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU)
+
+        #cv.imwrite('threshed.jpg', threshed)
 
         # Rotazione con minAreaRect on the nozeros
         pts = cv.findNonZero(threshed)
@@ -138,10 +135,6 @@ class Binarizer:
             th = 14
         if nPage is 33:
             th = 8
-
-        # Limito il numero di righe da poter fare in verticale
-        numLines = 0
-        maxNumLines = 4
 
         # Coordinate dell'immagine, altezza larghezza
         H, W = img.shape[:2]
@@ -206,8 +199,8 @@ class Binarizer:
         j = 0
         for i in range(len(uppers)):
 
-            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, j, dictionary,
-                                                       firstColumn, user)
+            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, cropped2, j,
+                                                          dictionary, firstColumn, user)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -218,7 +211,7 @@ class Binarizer:
         # Colonna di destra
         j = 0
         for i in range(len(uppers)):
-            listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, j, dictionary,
+            listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
                                                        secondColumn, user)
             if listBegin is not None:
                 xBegin.append(listBegin)
@@ -247,7 +240,7 @@ class Binarizer:
             except IndexError:
                 break
 
-    def wordSegmentation(self, line, cropped, i, dictionary, nColumn, user):
+    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user):
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
@@ -271,7 +264,10 @@ class Binarizer:
         listBegin = [x for x in range(W - 1) if lineHistRow[x] <= thW and lineHistRow[x + 1] > thW]
         listEnd = [x for x in range(W - 1) if lineHistRow[x] > thW and lineHistRow[x + 1] <= thW]
 
-        caliList = self.calimero(line, cropped)
+        _, threshed = cv.threshold(line, 90, 255, cv.THRESH_BINARY)
+        _, threshedcrop = cv.threshold(cropped, 90, 255, cv.THRESH_BINARY)
+
+        caliList = self.calimero(threshed, threshedcrop)
 
         for j in range(1, len(caliList)):
             try:
@@ -351,15 +347,10 @@ class Binarizer:
         return histogram
 
 
+    # TODO: usa le componenti connesse
     def calimero(self, image, cropped):
 
         method = cv.TM_SQDIFF_NORMED
-
-        w, h = cropped.shape[:-1]
-        wImage, hImage = image.shape[:-1]
-
-        """if (w <= wImage or h <= hImage):
-            return []"""
 
         result = cv.matchTemplate(cropped, image, method)
 
@@ -369,16 +360,37 @@ class Binarizer:
         for pt in zip(*loc[::-1]):  # Switch columns and rows
             try:
                 if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
-                    cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
+                    # cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
                     pts.append(pt)
             except IndexError:
                 break
 
         # Save the original image with the rectangle around the match.
-        cv.imwrite('calimered.png', image)
+        # cv.imwrite('calimered.png', image)
 
         return pts
 
+    def true_calimero(self, img):
+
+        blur_radius = 1.0
+        threshold = 80  # 80 con gauss filtering
+
+        print(img.shape)
+
+        #imgf = ndimage.gaussian_filter(img, blur_radius)
+
+        labeled, nr_objects = ndimage.label(img > threshold)
+        print("Number of objects is %d " % nr_objects)
+
+        coords = []
+        for x in range(nr_objects):
+            coords = np.where(np.any(labeled == x, -1))[0]
+            cv.rectangle(labeled, (coords[x], coords[x]), (coords[x] + 3, coords[x] + 3),
+                         (0, 255, 0), thickness=2)
+
+        print(coords)
+
+        plt.imsave('temp/out.png', labeled)
 
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
@@ -552,9 +564,9 @@ class Binarizer:
         cv.line(threshed, pt2, pt3, color=(0, 255, 0), thickness=2)
         cv.line(threshed, pt3, pt1, color=(0, 255, 0), thickness=2)
 
-        #resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
-        #cv.imshow('page', resized)
-        #cv.waitKey(0)
+        # resized = cv.resize(threshed, (int(900*(13/25)), int(1250*(13/25))))
+        # cv.imshow('page', resized)
+        # cv.waitKey(0)
 
         # calcolo le lunghezze dei cateti
         d_pt2pt3 = math.fabs(topLeftY - bottomLeftY)
@@ -567,15 +579,6 @@ class Binarizer:
         rotationAngle = math.degrees(math.acos(angleCos))
         if bottomLeftX > topLeftX:
             rotationAngle = - rotationAngle
-
-        '''
-        print('topLeft: ' + str(topLeftX) + ' ' + str(topLeftY))
-        print('bottomLeft: ' + str(bottomLeftX) + ' ' + str(bottomLeftY))
-        print('d_pt1pt2: ' + str(d_pt1pt2))
-        print('d_pt1pt3: ' + str(d_pt1pt3))
-        print('d_pt2pt3: ' + str(d_pt2pt3))
-        print('rotationAngle: ' + str(rotationAngle))
-        '''
 
         os.remove('temp/{img_name}.png'.format(img_name=img_path))
 
@@ -614,10 +617,10 @@ class Binarizer:
         for pt in pts:
             finalPts.append(pt)
 
-        for pt in finalPts:
-            cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
+        """for pt in finalPts:
+            cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)"""
 
         # Save the original image with the rectangle around the match.
-        cv.imwrite('two_way_calimered.png', image)
+        # cv.imwrite('two_way_calimered.png', image)
 
         return finalPts
