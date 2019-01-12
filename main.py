@@ -24,21 +24,47 @@ with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
 with open('JsonUtils/angles.json') as aj:
     angles = json.load(aj)
 
-with open('JsonUtils/etPositions.json') as et:
-    etPositions = json.load(et)
+# Variabile a True significa che e` possibile vedere le pagine singolarmente, altrimenti provvede a salvare le frequent
+# words nella apposita cartella (richiede qualche minuto)
 
-#for numPage in range(14, 34):
+inspector = True
+
+if inspector:
+
+    for numPage in range(14, 21):
+        binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
+                            numPage,
+                            '_P{x}_C0'.format(x=(numPage - 14)),
+                            '_P{x}_C1'.format(x=(numPage - 14)),
+                            dictionary,
+                            angles,
+                            None,
+                            None
+                            )
+
+
+else:
+    with open('JsonUtils/10mostFrequentWords.json') as fq:
+        frequentWords = json.load(fq)
 
 """numPage = 18
+    frequentWord: object
+    for frequentWord in frequentWords:
 
-binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
-                    numPage,
-                    '_P{x}_C0'.format(x=(numPage - 14)),
-                    '_P{x}_C1'.format(x=(numPage - 14)),
-                    dictionary,
-                    angles,
-                    etPositions
-                    )"""
+        with open('JsonUtils/{frequentWord}Positions.json'.format(frequentWord=frequentWord)) as dfw:
+            wordPositions = json.load(dfw)
+
+        for numPage in range(14, 21):
+
+            binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
+                                numPage,
+                                '_P{x}_C0'.format(x=(numPage - 14)),
+                                '_P{x}_C1'.format(x=(numPage - 14)),
+                                dictionary,
+                                angles,
+                                wordPositions,
+                                frequentWord
+                                )"""
 
 # img = cv.imread('thresh.png')
 # utils.hola(img)
