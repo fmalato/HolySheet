@@ -71,21 +71,49 @@ class Binarizer:
 
             print('{img_name} binarized.'.format(img_name=image))
 
+    def rotateOriginals(self, image_path, nPage, angles):
 
-    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles):
+        img = cv.imread(image_path)
 
-        user = input('Inserire utente (scelte possibili: Federico, Francesco): ')
-        #user = ' '
+        # Converte l'immagine in scala di grigi
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+        # Binarizzazione
+        th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV)
+
+        # Rotazione con minAreaRect on the nozeros
+        pts = cv.findNonZero(threshed)
+        ret = cv.minAreaRect(pts)
+
+        (cx, cy), (w, h), ang = ret
+        if w > h:
+            w, h = h, w
+            ang += 90
+
+        ang = angles[str(nPage)]
+
+        M = cv.getRotationMatrix2D((cx, cy), ang, 1.0)
+        rotated = cv.warpAffine(img, M, (img.shape[1], img.shape[0]))
+
+        cv.imwrite('GenesisPages/old/MuenchenRotated/Gut-{nPage}.png'.format(nPage=nPage), rotated)
+
+
+
+    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles, etPositions):
+
+        #user = input('Inserire utente (scelte possibili: Federico, Francesco): ')
+        user = ' '
 
         img = cv.imread(image_path)
         cropped = cv.imread('cropped.png')
+        cropped2 = cv.imread('cropped2.png')
         cropped2 = cv.imread('cropped4.png')
 
         # Converte l'immagine in scala di grigi
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
         # Binarizzazione
-        th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV | cv.THRESH_OTSU)
+        th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV)
 
         #cv.imwrite('threshed.jpg', threshed)
 
@@ -107,6 +135,8 @@ class Binarizer:
         # Fa l'istogramma, conta i punti neri per ogni riga. Picchi di neri corrispondono alla stessa
         hist = cv.reduce(rotated, 1, cv.REDUCE_AVG).reshape(-1)
         histVert = self.histogramV(rotated)
+
+        th, rotated = cv.threshold(rotated, 140, 255, cv.THRESH_BINARY)
 
         # Questa e' la soglia che decide fino a che punto tagliare
 
@@ -199,8 +229,8 @@ class Binarizer:
         j = 0
         for i in range(len(uppers)):
 
-            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, cropped2, j,
-                                                          dictionary, firstColumn, user)
+            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
+                                                       firstColumn, user, etPositions)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -212,7 +242,7 @@ class Binarizer:
         j = 0
         for i in range(len(uppers)):
             listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
-                                                       secondColumn, user)
+                                                       secondColumn, user, etPositions)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -240,7 +270,7 @@ class Binarizer:
             except IndexError:
                 break
 
-    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user):
+    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user, etPositions):
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
@@ -264,10 +294,10 @@ class Binarizer:
         listBegin = [x for x in range(W - 1) if lineHistRow[x] <= thW and lineHistRow[x + 1] > thW]
         listEnd = [x for x in range(W - 1) if lineHistRow[x] > thW and lineHistRow[x + 1] <= thW]
 
-        _, threshed = cv.threshold(line, 90, 255, cv.THRESH_BINARY)
-        _, threshedcrop = cv.threshold(cropped, 90, 255, cv.THRESH_BINARY)
+        # Per ora meglio calimero semplice
 
-        caliList = self.calimero(threshed, threshedcrop)
+        caliList = self.calimero(line, cropped)
+        #caliList = self.two_way_calimero(line, cropped, cropped2)
 
         for j in range(1, len(caliList)):
             try:
@@ -290,7 +320,6 @@ class Binarizer:
 
         try:
             wordsInLine = dictionary[nColumn][i]
-            print(wordsInLine)
         except IndexError:
             wordsInLine = 6
 
@@ -301,12 +330,15 @@ class Binarizer:
                 word = line[:, listBegin[j]: listEnd[j]]
             except IndexError:
                 break
+
             h, w = word.shape[:2]
             if (h > 0 and w > 0):
-                cv.imshow('Word', word)
+                if str((nColumn, i, j)) in etPositions.keys():
+                    cv.imwrite('et/{nColumn}_{i}_{j}.png'.format(nColumn=nColumn, i=i, j=j), word)
+                #cv.imshow('Word', word)
                 if user == 'Federico':
                     cv.moveWindow('Word', 500, 500)
-                cv.waitKey(0)
+                #cv.waitKey(0)
         i += 1
 
         return listBegin, listEnd, i

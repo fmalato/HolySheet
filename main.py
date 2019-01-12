@@ -1,5 +1,6 @@
 import binarizer as bin
 import utils
+import stringUtils
 
 import json
 import cv2 as cv
@@ -17,13 +18,14 @@ cropped2 = cv.imread('cropped4.png')
 pts = binar.two_way_calimero(img, cropped, cropped2)
 print(pts)"""
 
-with open('groundTruthDictionary.json') as groundTruth:
+with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
     dictionary = json.load(groundTruth)
 
-# Problemi patologici su pag14, cattiva segmentazione su pag31
-
-with open('angles.json') as aj:
+with open('JsonUtils/angles.json') as aj:
     angles = json.load(aj)
+
+with open('JsonUtils/etPositions.json') as et:
+    etPositions = json.load(et)
 
 #for numPage in range(14, 34):
 
@@ -34,8 +36,10 @@ binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                     '_P{x}_C0'.format(x=(numPage - 14)),
                     '_P{x}_C1'.format(x=(numPage - 14)),
                     dictionary,
-                    angles)"""
+                    angles,
+                    etPositions
+                    )"""
 
-img = cv.imread('thresh.png')
-utils.hola(img)
+# img = cv.imread('thresh.png')
+# utils.hola(img)
 
