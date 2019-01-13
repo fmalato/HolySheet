@@ -16,12 +16,12 @@ def getWordsCounterDict(lines):
 
         # Trovo nel txt le righe speciali di inizio paragrafo, saranno chiave nel dizionario
         if lines[i][0] == "_":
-            columnsLengthDict[lines[i][:-2]] = []
+            columnsLengthDict[lines[i][:-1]] = []
 
             # Per ogni riga adesso conto quante parole ci sono e me lo salvo
             j = i + 1
             while j < len(lines) and lines[j][0] is not "_":
-                columnsLengthDict[lines[i][:-2]].append(wordCounter(lines[j]))
+                columnsLengthDict[lines[i][:-1]].append(wordCounter(lines[j]))
                 j += 1
 
             # per risparmiare cicli adesso riparto dal nuovo paragrafo
@@ -102,7 +102,7 @@ def getDictWordPosition(lines, specificWord):
 
         # Trovo nel txt le righe speciali di inizio paragrafo, primo elemento della tupla
         if lines[i][0] == "_":
-            page = lines[i][:-2]
+            page = lines[i][:-1]
             nLine = 0
 
         # Altrimenti trovo una riga vera, splitto le parole e le conto
@@ -120,9 +120,7 @@ def getDictWordPosition(lines, specificWord):
 
     return wordDict
 
-
 '''
-
 # Leggo il ground truth e me lo salvo in un file come dizionario json, per non stare a rileggerlo ad ogni esecuzione
 
 
@@ -149,6 +147,10 @@ with open('JsonUtils/10mostFrequentWords.json') as mf:
 for frequentWord in mostFrequentWords:
     with open('JsonUtils/{frequentWord}Positions.json'.format(frequentWord=frequentWord), 'w') as fw:
         json.dump(getDictWordPosition(lines, frequentWord), fw)
+
+
+print("Finished")
+
 
 
 '''
