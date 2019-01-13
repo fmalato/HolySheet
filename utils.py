@@ -1,6 +1,9 @@
 import cv2 as cv
 import json
 import pytesseract
+import numpy as np
+
+from PIL import Image
 
 def findCentroids(img):
 
@@ -81,36 +84,89 @@ def hola(img):
     cv.imshow('img', img)
     cv.waitKey(0)
 
-from skimage import measure
-from skimage import filters
-import matplotlib.pyplot as plt
-import numpy as np
+# TODO: Find a feasable solution for the cubic complexity (not required in line per line computation)
+# TODO: Also, find a better criterion to determine connected components (or just correct this)
+# There should be 20 components, not 124
 
-def nTry():
+def connectedComponents(image_path):
 
-    n = 12
-    l = 256
-    np.random.seed(1)
-    im = np.zeros((l, l))
-    points = l * np.random.random((2, n ** 2))
-    im[(points[0]).astype(np.int), (points[1]).astype(np.int)] = 1
-    im = filters.gaussian_filter(im, sigma= l / (4. * n))
-    blobs = im > 0.7 * im.mean()
+    image = cv.imread(image_path)
 
-    all_labels = measure.label(blobs)
-    blobs_labels = measure.label(blobs, background=0)
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    _, threshed = cv.threshold(gray, 50, 255, cv.THRESH_BINARY)    # BINARY non INV se gli si passa black n white
 
-    plt.figure(figsize=(9, 3.5))
-    plt.subplot(131)
-    plt.imshow(blobs, cmap='gray')
-    plt.axis('off')
-    plt.subplot(132)
-    plt.imshow(all_labels, cmap='spectral')
-    plt.axis('off')
-    plt.subplot(133)
-    plt.imshow(blobs_labels, cmap='spectral')
-    plt.axis('off')
+    height, width = image.shape[0], image.shape[1]
+    numComponent = 0
 
-    plt.tight_layout()
-    plt.show()
+    components = []
+    conflicts = []
+    for row in range(height):
+        line = []
+        for col in range(width):
+            if threshed[row][col] == 255 and (threshed[row][col - 1] == 255 or threshed[row - 1][col] == 255):
+                line.append(numComponent)
+            elif threshed[row][col] == 255 and (threshed[row][col - 1] == 0 and threshed[row - 1][col] == 0):
+                numComponent += 1
+                line.append(numComponent)
+            elif threshed[row][col] == 0:
+                line.append(0)
+            if threshed[row][col] == 255 and (components[row - 1][col] != line[col - 1]) and \
+                                            components[row - 1][col] != 0 and line[col - 1] != 0:
+                conflicts.append((numComponent, components[row - 1][col]))
+                line.pop(len(line) - 1)
+                line.append(components[row - 1][col])
+
+            """if threshed[row][col] == 255:
+                if threshed[row][col - 1] == 0:
+                    numComponent += 1
+                    line.append(numComponent)
+                if line[col - 1] == components[row - 1][col] and line[col - 1] != 0:
+                    line.pop(len(line) - 1)
+                    line.append(line[col - 1])
+                elif line[col - 1] != components[row - 1][col] and line[col - 1] != 0 and  \
+                                                                components[row - 1][col] != 0:
+                    line.pop(len(line) - 1)
+                    line.append(line[col - 1])
+                    conflicts.append((line[col - 1], components[row - 1][col]))
+            else:
+                line.append(0)"""
+
+
+        components.append(line)
+
+    conflicts = list(set(conflicts))
+    conflicts.sort(key=lambda tup: tup[1])
+
+    dictKeys = list(set([x[1] for x in conflicts]))
+    dictKeys.sort()
+    trueConflicts = {}
+    for x in dictKeys:
+        trueConflicts[x] = [el[0] for el in conflicts if el[1] == x]
+
+    for key in trueConflicts.keys():
+        for index, comp in enumerate(components):
+            for elIndex, el in enumerate(comp):
+                if el in trueConflicts[key]:
+                    components[index][elIndex] = key
+
+    image = []
+    for comp in components:
+        imgLine = []
+        for el in comp:
+            if el > 0 and el <= 10:
+                imgLine.append((255, 0, 0))
+            elif el > 10 and el <= 20:
+                imgLine.append((0, 255, 0))
+            elif el > 20:
+                imgLine.append((0, 0, 255))
+            else:
+                imgLine.append((0, 0, 0))
+        image.append(imgLine)
+
+    imgArray = np.array(image, dtype=np.uint8)
+    img = Image.fromarray(imgArray)
+
+    img.save('generated.png')
+
+
 
