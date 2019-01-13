@@ -120,7 +120,9 @@ def getDictWordPosition(lines, specificWord):
 
     return wordDict
 
+
 '''
+
 # Leggo il ground truth e me lo salvo in un file come dizionario json, per non stare a rileggerlo ad ogni esecuzione
 
 
@@ -147,15 +149,6 @@ with open('JsonUtils/10mostFrequentWords.json') as mf:
 for frequentWord in mostFrequentWords:
     with open('JsonUtils/{frequentWord}Positions.json'.format(frequentWord=frequentWord), 'w') as fw:
         json.dump(getDictWordPosition(lines, frequentWord), fw)
-
-
-'''
-etDict = getDictWordPosition(lines, mostFrequentWords[0])
-
-with open('JsonUtils/etPositions.json', 'w') as et:
-    json.dump(etDict, et)
-'''
-
 
 
 '''
