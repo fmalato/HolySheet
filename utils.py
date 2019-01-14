@@ -84,9 +84,8 @@ def hola(img):
     cv.imshow('img', img)
     cv.waitKey(0)
 
-# TODO: Find a feasable solution for the cubic complexity (not required in line per line computation)
-# TODO: Also, find a better criterion to determine connected components (or just correct this)
-# There should be 20 components, not 124
+# TODO: Find a solution to the conflict map problem.
+# There should be 20 components, not 127
 
 def connectedComponents(image_path):
 
@@ -99,7 +98,7 @@ def connectedComponents(image_path):
     numComponent = 0
 
     components = []
-    conflicts = []
+    conflicts = {}
     for row in range(height):
         line = []
         for col in range(width):
@@ -112,42 +111,20 @@ def connectedComponents(image_path):
                 line.append(0)
             if threshed[row][col] == 255 and (components[row - 1][col] != line[col - 1]) and \
                                             components[row - 1][col] != 0 and line[col - 1] != 0:
-                conflicts.append((numComponent, components[row - 1][col]))
+                rightOne = line[len(line) - 1]
+                if rightOne not in conflicts.keys():
+                    conflicts[rightOne] = []
+                conflicts[rightOne].append(components[row - 1][col])
                 line.pop(len(line) - 1)
-                line.append(components[row - 1][col])
-
-            """if threshed[row][col] == 255:
-                if threshed[row][col - 1] == 0:
-                    numComponent += 1
-                    line.append(numComponent)
-                if line[col - 1] == components[row - 1][col] and line[col - 1] != 0:
-                    line.pop(len(line) - 1)
-                    line.append(line[col - 1])
-                elif line[col - 1] != components[row - 1][col] and line[col - 1] != 0 and  \
-                                                                components[row - 1][col] != 0:
-                    line.pop(len(line) - 1)
-                    line.append(line[col - 1])
-                    conflicts.append((line[col - 1], components[row - 1][col]))
-            else:
-                line.append(0)"""
-
-
+                line.append(rightOne)
         components.append(line)
 
-    conflicts = list(set(conflicts))
-    conflicts.sort(key=lambda tup: tup[1])
+    for key in conflicts.keys():
+        conflicts[key] = list(set(conflicts[key]))
 
-    dictKeys = list(set([x[1] for x in conflicts]))
-    dictKeys.sort()
-    trueConflicts = {}
-    for x in dictKeys:
-        trueConflicts[x] = [el[0] for el in conflicts if el[1] == x]
-
-    for key in trueConflicts.keys():
-        for index, comp in enumerate(components):
-            for elIndex, el in enumerate(comp):
-                if el in trueConflicts[key]:
-                    components[index][elIndex] = key
+    """for comp in components:
+        for el in comp:
+            if """
 
     image = []
     for comp in components:
