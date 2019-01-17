@@ -5,6 +5,8 @@ import numpy as np
 import math
 import scipy
 
+import utils
+
 from scipy import ndimage
 from matplotlib import pyplot as plt
 from PIL import Image
@@ -296,8 +298,9 @@ class Binarizer:
 
         # Per ora meglio calimero semplice
 
-        caliList = self.calimero(line, cropped)
+        #caliList = self.calimero(line, cropped)
         #caliList = self.two_way_calimero(line, cropped, cropped2)
+        caliList = self.true_calimero(line)
 
         for j in range(1, len(caliList)):
             try:
@@ -405,28 +408,6 @@ class Binarizer:
         # cv.imwrite('calimered.png', image)
 
         return pts
-
-    def true_calimero(self, img):
-
-        blur_radius = 1.0
-        threshold = 80  # 80 con gauss filtering
-
-        print(img.shape)
-
-        #imgf = ndimage.gaussian_filter(img, blur_radius)
-
-        labeled, nr_objects = ndimage.label(img > threshold)
-        print("Number of objects is %d " % nr_objects)
-
-        coords = []
-        for x in range(nr_objects):
-            coords = np.where(np.any(labeled == x, -1))[0]
-            cv.rectangle(labeled, (coords[x], coords[x]), (coords[x] + 3, coords[x] + 3),
-                         (0, 255, 0), thickness=2)
-
-        print(coords)
-
-        plt.imsave('temp/out.png', labeled)
 
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
@@ -620,43 +601,43 @@ class Binarizer:
 
         return rotationAngle
 
-    def two_way_calimero(self, image, cropped1, cropped2):
+    def true_calimero(self, image):
 
-        method = cv.TM_SQDIFF_NORMED
+        consolidatedPts = []
 
-        result = cv.matchTemplate(cropped1, image, method)
+        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        _, threshed = cv.threshold(gray, 50, 255, cv.THRESH_BINARY)
 
-        threshold = 0.76    # best atm: 0.76
-        loc = np.where(result < threshold)
-        pts = []
-        for pt in zip(*loc[::-1]):  # Switch columns and rows
-            try:
-                if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
-                    pts.append(pt)
-            except IndexError:
-                break
+        cv.imwrite('/tmp/cali.png', threshed)
+        ptsCoords = utils.connectedComponents('/tmp/cali.png')
 
-        result = cv.matchTemplate(cropped2, image, method)
+        halfHeight = int((image.shape[0]/2))
+        threeQuartHeight = int(3*(image.shape[0]/4))
 
-        threshold2 = 0.3
-        loc = np.where(result < threshold2)
-        pts2 = []
-        for pt in zip(*loc[::-1]):  # Switch columns and rows
-            try:
-                if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
-                    pts2.append(pt)
-            except IndexError:
-                break
+        allZeros = True
 
-        finalPts = [pt for pt in pts2 if pt not in pts]
+        for pt in ptsCoords:
+            if pt[0] >= halfHeight - 3 and pt[0] <= halfHeight + 3:
+                for pixel in range(0, (halfHeight - 3), 1):
+                    if threshed[pixel][pt[1]] == 255:
+                        allZeros = False
+                for pixel in range((halfHeight + 3), image.shape[0], 1):
+                    if threshed[pixel][pt[1]].any() >= 200:
+                        allZeros = False
+                if allZeros:
+                    consolidatedPts.append(pt)
+            elif pt[0] >= threeQuartHeight - 2 and pt[0] <= threeQuartHeight + 2:
+                for pixel in range(0, threeQuartHeight - 3, 1):
+                    if threshed[pixel][pt[1]].any() >= 200:
+                        allZeros = False
+                for pixel in range(threeQuartHeight + 3, image.shape[0], 1):
+                    if threshed[pixel][pt[1]].any() >= 200:
+                        allZeros = False
+                if allZeros:
+                    consolidatedPts.append(pt)
+            allZeros = True
 
-        for pt in pts:
-            finalPts.append(pt)
+        os.remove('/tmp/cali.png')
+        print(consolidatedPts)
 
-        """for pt in finalPts:
-            cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)"""
-
-        # Save the original image with the rectangle around the match.
-        # cv.imwrite('two_way_calimered.png', image)
-
-        return finalPts
+        return consolidatedPts

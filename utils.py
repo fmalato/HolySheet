@@ -206,7 +206,7 @@ def connectedComponents(image_path):
         for col in range(width):
             if components[row][col] != 0 and components[row][col] not in found:
                 found.append(components[row][col])
-                coords[components[row][col]] = (row, col)   # ATTENZIONE: in coordinate cartesiane sono (y, x)
+                coords[components[row][col]] = (row + start_row, col)   # ATTENZIONE: in coordinate cartesiane sono (y, x)
 
     # Da qui in poi viene generata l'immagine nuova, lo elimino dopo aver fatto qualche test sula pagina effettiva
     """image = []
@@ -224,11 +224,11 @@ def connectedComponents(image_path):
     cv.imwrite('generated.png', imgArray)
     img = cv.imread('generated.png')
     for key in coords.keys():
-        cv.rectangle(img, (coords[key][1], coords[key][0]), (coords[key][1] + 5, height - coords[key][0]), (0, 0, 255), 1)
-
+        cv.rectangle(img, (coords[key][1], coords[key][0] - start_row), 
+                     (coords[key][1] + 5, height - coords[key][0] - start_row), (0, 0, 255), 1)
     cv.imwrite('generated.png', img)"""
 
-    return coords
+    return [coords[key] for key in coords.keys()]
 
 
 def sortDict(dictionary):

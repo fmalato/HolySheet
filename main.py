@@ -9,6 +9,8 @@ import numpy as np
 bible = 'Muenchen'
 binar = bin.Binarizer(bible)
 
+image = cv.imread('testLine1.png')
+
 # binar.binarize()
 
 with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
@@ -59,5 +61,12 @@ else:
                                 frequentWord
                                 )
 
-#utils.connectedComponents('testLine.png')
+# utils.connectedComponents('testLine1.png')
+"""for x in range(1, 7, 1):
+    image = cv.imread('testLine{x}.png'.format(x=x))
+    pts = binar.true_calimero(image)
+    for pt in pts:
+        cv.rectangle(image, (pt[1] - 2, pt[0]), (pt[1] + 5, pt[0] + 5), (0, 0, 255), 1)
+    cv.imwrite('calimero_test/points{x}.png'.format(x=x), image)
 
+    print(pts)"""
