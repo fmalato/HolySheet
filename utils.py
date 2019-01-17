@@ -92,8 +92,8 @@ def connectedComponents(image_path):
     image = cv.imread(image_path)
     height, width = image.shape[0], image.shape[1]
 
-    start_row, start_col = int(height*0.45), int(0)
-    # Let's get the ending pixel coordinates (bottom right of cropped top)
+    start_row, start_col = int(height*0.5), int(0)
+    # Taglia l'immagine a metà, per eliminare un certo numero di variabili che, computazionalmente, pesano.
     end_row, end_col = int(height), int(width)
     croppedImage = image[start_row:end_row , start_col:end_col]
 
@@ -104,8 +104,11 @@ def connectedComponents(image_path):
 
     numComponent = 1
 
+    # La prima riga composta da zeri sta qui per evitare errori sugli indici, più avanti viene eliminata
     components = [[0 for x in range(width)]]
     conflicts = {}
+
+    # Questo tripudio di logica booleana è praticamente l'algoritmo che mappa i pixel != 0 con valori != 0
 
     for row in range(height):
         line = []
@@ -115,22 +118,22 @@ def connectedComponents(image_path):
             elif threshed[row][col] == 255:
                 if threshed[row][col - 1] == 255 or threshed[row - 1][col] == 255:
                     if col > 0:
-                        if components[row - 1][col] == line[col - 1]:
+                        if components[row][col] == line[col - 1]:
                             line.append(line[col - 1])
-                        elif components[row - 1][col] != line[col - 1]:
-                            if components[row - 1][col] != 0 and line[col - 1] != 0:
+                        elif components[row][col] != line[col - 1]:
+                            if components[row][col] != 0 and line[col - 1] != 0:
                                 if line[col - 1] not in conflicts.keys():
                                     conflicts[line[col - 1]] = []
-                                conflicts[line[col - 1]].append(components[row - 1][col])
+                                conflicts[line[col - 1]].append(components[row][col])
                                 line.append(line[col - 1])
                             else:
                                 if threshed[row][col - 1] == 0:
-                                    line.append(components[row - 1][col])
+                                    line.append(components[row][col])
                                 else:
                                     line.append(line[col - 1])
                     else:
                         if threshed[row - 1][col] == 255:
-                            line.append(components[row - 1][col])
+                            line.append(components[row][col])
                         else:
                             line.append(numComponent)
 
@@ -139,6 +142,10 @@ def connectedComponents(image_path):
                     line.append(numComponent)
         components.append(line)
 
+    # Rimuovo per evitare una riga nera all'inizio di ogni immagine (meno variabili)
+    components.pop(0)
+
+    # Eh, questi tre blocchi di cicli sono... sostanzialmente sotterfugi per riordinare come si deve i conflitti.
     for key in conflicts.keys():
         conflicts[key] = list(set(conflicts[key]))
 
@@ -156,6 +163,9 @@ def connectedComponents(image_path):
             newKeys.append((el[0], conflicts[el[1]][0]))
             conflicts[el[1]].pop(0)
 
+    # Riordina il dizionario dei conflitti e li risolve con i cicli for seguenti. Purtroppo non ho modo di farlo più
+    # rapidamente (se ti viene in mente un modo, ben venga)!
+
     conflicts = sortDict(conflicts)
 
     for key in list(conflicts.keys())[::-1]:
@@ -167,10 +177,39 @@ def connectedComponents(image_path):
             if conflicts[k] == [key]:
                 conflicts[k] = [conflicts[key][0]]
 
+    # json mi serviva solo per visualizzare le componenti in fase di test
     # with open('comp.json', 'w+') as f:
         # json.dump(components, f)
 
-    image = []
+    # Serve per mantenere solo le componenti connesse composte da al massimo un certo numero di pixel. Purtroppo anche
+    # questo è cubico. Sul mio fisso però funziona bene, se usiamo soltanto la riga.
+    numPixels = {}
+    for row in components:
+        for col in row:
+            if col != 0:
+                if col not in numPixels.keys():
+                    numPixels[col] = 1
+                else:
+                    numPixels[col] += 1
+
+    for key in numPixels.keys():
+        if numPixels[key] >= 30:
+            for row in range(height):
+                for col in range(width):
+                    if components[row][col] == key:
+                        components[row][col] = 0
+
+    # Questi ultimi cicli si occupano di restituire le coordinate di ciascuna componente connessa rimasta
+    found = []
+    coords = {}
+    for row in range(height):
+        for col in range(width):
+            if components[row][col] != 0 and components[row][col] not in found:
+                found.append(components[row][col])
+                coords[components[row][col]] = (row, col)   # ATTENZIONE: in coordinate cartesiane sono (y, x)
+
+    # Da qui in poi viene generata l'immagine nuova, lo elimino dopo aver fatto qualche test sula pagina effettiva
+    """image = []
     for comp in components:
         imgLine = []
         for el in comp:
@@ -181,9 +220,15 @@ def connectedComponents(image_path):
         image.append(imgLine)
 
     imgArray = np.array(image, dtype=np.uint8)
-    img = Image.fromarray(imgArray)
+    #img = Image.fromarray(imgArray)
+    cv.imwrite('generated.png', imgArray)
+    img = cv.imread('generated.png')
+    for key in coords.keys():
+        cv.rectangle(img, (coords[key][1], coords[key][0]), (coords[key][1] + 5, height - coords[key][0]), (0, 0, 255), 1)
 
-    img.save('generated.png')
+    cv.imwrite('generated.png', img)"""
+
+    return coords
 
 
 def sortDict(dictionary):

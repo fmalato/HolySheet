@@ -11,13 +11,6 @@ binar = bin.Binarizer(bible)
 
 # binar.binarize()
 
-"""img = cv.imread('threshed.jpg')
-cropped = cv.imread('cropped.png')
-cropped2 = cv.imread('cropped4.png')
-#pts = binar.calimero(img, cropped)
-pts = binar.two_way_calimero(img, cropped, cropped2)
-print(pts)
-
 with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
     dictionary = json.load(groundTruth)
 
@@ -45,9 +38,9 @@ if inspector:
 
 else:
     with open('JsonUtils/10mostFrequentWords.json') as fq:
-        frequentWords = json.load(fq)"""
+        frequentWords = json.load(fq)
 
-"""numPage = 18
+    numPage = 18
     frequentWord: object
     for frequentWord in frequentWords:
 
@@ -64,7 +57,7 @@ else:
                                 angles,
                                 wordPositions,
                                 frequentWord
-                                )"""
+                                )
 
-utils.connectedComponents('calimered.png')
+#utils.connectedComponents('testLine.png')
 
