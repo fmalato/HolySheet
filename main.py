@@ -26,7 +26,7 @@ inspector = True
 
 if inspector:
 
-    for numPage in range(14, 21):
+    for numPage in range(15, 21):
         binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                             numPage,
                             '_P{x}_C0'.format(x=(numPage - 14)),
@@ -49,7 +49,7 @@ else:
         with open('JsonUtils/{frequentWord}Positions.json'.format(frequentWord=frequentWord)) as dfw:
             wordPositions = json.load(dfw)
 
-        for numPage in range(14, 21):
+        for numPage in range(15, 21):
 
             binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                                 numPage,

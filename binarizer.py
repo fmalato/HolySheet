@@ -331,6 +331,9 @@ class Binarizer:
         for j in range(len(listBegin)):
             try:
                 word = line[:, listBegin[j]: listEnd[j]]
+                """cv.rectangle(line, (listBegin[j], 0), (listEnd[j], 5), (0, 255, 0), thickness=1)
+                cv.imshow('dots', line)
+                cv.waitKey(0)"""
             except IndexError:
                 break
 

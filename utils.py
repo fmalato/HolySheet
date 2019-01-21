@@ -159,7 +159,7 @@ def connectedComponents(image_path):
         if el[1] not in conflicts.keys():
             conflicts[el[1]] = []
         conflicts[el[1]].append(el[0])
-        if len(conflicts[el[1]]) > 1:
+        if len(conflicts[el[1]]) > 1 and ((el[0], conflicts[el[1]][0]) not in newKeys):
             newKeys.append((el[0], conflicts[el[1]][0]))
             conflicts[el[1]].pop(0)
 
@@ -193,7 +193,7 @@ def connectedComponents(image_path):
                     numPixels[col] += 1
 
     for key in numPixels.keys():
-        if numPixels[key] >= 30:
+        if numPixels[key] >= 20 or numPixels[key] <= 5:
             for row in range(height):
                 for col in range(width):
                     if components[row][col] == key:
