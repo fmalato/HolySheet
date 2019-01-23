@@ -298,9 +298,9 @@ class Binarizer:
 
         # Per ora meglio calimero semplice
 
-        #caliList = self.calimero(line, cropped)
+        caliList = self.calimero(line)
         #caliList = self.two_way_calimero(line, cropped, cropped2)
-        caliList = self.true_calimero(line)
+        #caliList = self.true_calimero(line)
 
         for j in range(1, len(caliList)):
             try:
@@ -389,28 +389,36 @@ class Binarizer:
         return histogram
 
 
-    # TODO: usa le componenti connesse
-    def calimero(self, image, cropped):
+    def calimero(self, image):
 
-        method = cv.TM_SQDIFF_NORMED
+        height, width = image.shape[0], image.shape[1]
 
-        result = cv.matchTemplate(cropped, image, method)
+        start_row, start_col = int(height * 0), int(0)
+        # Taglia l'immagine a metà, per eliminare un certo numero di variabili che, computazionalmente, pesano.
+        end_row, end_col = int(height), int(width)
+        croppedImage = image[start_row:end_row, start_col:end_col]
 
-        threshold = 0.76    # best atm: 0.76
-        loc = np.where(result < threshold)
+        gray = cv.cvtColor(croppedImage, cv.COLOR_BGR2GRAY)
+
+        _, threshed = cv.threshold(gray, 50, 255, cv.THRESH_BINARY)
+        output = cv.connectedComponentsWithStats(threshed, connectivity=8)
+
+        num_labels = output[0]
+        labels = output[1]
+        stats = output[2]
         pts = []
-        for pt in zip(*loc[::-1]):  # Switch columns and rows
-            try:
-                if np.all(image[(pt[1] + 8), (pt[0] + 3)]) == 0 and np.all(image[(pt[1] - 8), (pt[0] + 3)]) == 0:
-                    # cv.rectangle(image, pt, (pt[0] + 6, pt[1] + 7), (0, 0, 255), 2)
-                    pts.append(pt)
-            except IndexError:
-                break
 
-        # Save the original image with the rectangle around the match.
-        # cv.imwrite('calimered.png', image)
+        for label in range(num_labels):
+            if stats[label, cv.CC_STAT_AREA] <= 20 and stats[label, cv.CC_STAT_AREA] >= 5:
+                if stats[label, cv.CC_STAT_TOP] >= 4:
+                    pts.append((stats[label, cv.CC_STAT_LEFT], stats[label, cv.CC_STAT_TOP] + start_row))
 
-        return pts
+        for pt in pts:
+            cv.rectangle(image, (pt[0], pt[1]), (pt[0] + 6, pt[1] + 6), (0, 255, 0), thickness=1)
+
+        cv.imshow('dots', image)
+        cv.waitKey(0)
+        return list(set(pts))
 
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
@@ -611,8 +619,7 @@ class Binarizer:
         gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
         _, threshed = cv.threshold(gray, 50, 255, cv.THRESH_BINARY)
 
-        cv.imwrite('/tmp/cali.png', threshed)
-        ptsCoords = utils.connectedComponents('/tmp/cali.png')
+        ptsCoords = utils.connectedComponents(image)
 
         halfHeight = int((image.shape[0]/2))
         threeQuartHeight = int(3*(image.shape[0]/4))
@@ -620,27 +627,29 @@ class Binarizer:
         allZeros = True
 
         for pt in ptsCoords:
-            if pt[0] >= halfHeight - 3 and pt[0] <= halfHeight + 3:
-                for pixel in range(0, (halfHeight - 3), 1):
+            if pt[0] >= halfHeight - 4 and pt[0] <= halfHeight + 6:
+                for pixel in range(0, (halfHeight - 4), 1):
                     if threshed[pixel][pt[1]] == 255:
                         allZeros = False
-                for pixel in range((halfHeight + 3), image.shape[0], 1):
-                    if threshed[pixel][pt[1]].any() >= 200:
+                        break
+                for pixel in range((halfHeight + 6), image.shape[0], 1):
+                    if threshed[pixel][pt[1]] == 255:
                         allZeros = False
+                        break
                 if allZeros:
                     consolidatedPts.append(pt)
-            elif pt[0] >= threeQuartHeight - 2 and pt[0] <= threeQuartHeight + 2:
+            allZeros = True
+            if pt[0] >= threeQuartHeight - 4 and pt[0] <= threeQuartHeight + 4:
                 for pixel in range(0, threeQuartHeight - 3, 1):
-                    if threshed[pixel][pt[1]].any() >= 200:
+                    if threshed[pixel][pt[1]] == 255:
                         allZeros = False
-                for pixel in range(threeQuartHeight + 3, image.shape[0], 1):
-                    if threshed[pixel][pt[1]].any() >= 200:
+                for pixel in range(threeQuartHeight + 4, image.shape[0], 1):
+                    if threshed[pixel][pt[1]] == 255:
                         allZeros = False
                 if allZeros:
                     consolidatedPts.append(pt)
             allZeros = True
 
-        os.remove('/tmp/cali.png')
         print(consolidatedPts)
 
         return consolidatedPts

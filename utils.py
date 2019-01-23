@@ -87,9 +87,8 @@ def hola(img):
 
 # TODO: Solve intractability of the line
 
-def connectedComponents(image_path):
+def connectedComponents(image):
 
-    image = cv.imread(image_path)
     height, width = image.shape[0], image.shape[1]
 
     start_row, start_col = int(height*0.5), int(0)
@@ -192,12 +191,15 @@ def connectedComponents(image_path):
                 else:
                     numPixels[col] += 1
 
+    blacks = []
     for key in numPixels.keys():
         if numPixels[key] >= 20 or numPixels[key] <= 5:
             for row in range(height):
                 for col in range(width):
                     if components[row][col] == key:
                         components[row][col] = 0
+        else:
+            blacks.append(key)
 
     # Questi ultimi cicli si occupano di restituire le coordinate di ciascuna componente connessa rimasta
     found = []
@@ -206,7 +208,7 @@ def connectedComponents(image_path):
         for col in range(width):
             if components[row][col] != 0 and components[row][col] not in found:
                 found.append(components[row][col])
-                coords[components[row][col]] = (row + start_row, col)   # ATTENZIONE: in coordinate cartesiane sono (y, x)
+                coords[components[row][col]] = (row + start_row, col)    # ATTENZIONE: in coordinate cartesiane sono (y, x)
 
     # Da qui in poi viene generata l'immagine nuova, lo elimino dopo aver fatto qualche test sula pagina effettiva
     """image = []
