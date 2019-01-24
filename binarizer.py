@@ -182,11 +182,11 @@ class Binarizer:
 
         # traccia semplicemente la linea, del colore desiderato
         rotated = cv.cvtColor(rotated, cv.COLOR_GRAY2BGR)
-        for y in uppers:
-            cv.line(rotated, (0, y), (W, y), (255, 0, 0), 1)
+        #for y in uppers:
+        #    cv.line(rotated, (0, y), (W, y), (255, 0, 0), 1)
 
-        for y in lowers:
-            cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
+        #for y in lowers:
+        #    cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
 
         # Pagine dispari con colonne non tagliate bene
         if (len(columns) is not 4 and (nPage % 2) is 1):
@@ -284,8 +284,11 @@ class Binarizer:
         if (H < 5):
             return None, None, i
 
+        line = self.calimero(line)
+
         if frequentWord is None:
             cv.imshow('Line', line)
+            cv.waitKey(0)
             if user == 'Federico':
                 cv.moveWindow('Line', 490, 300)
 
@@ -298,10 +301,10 @@ class Binarizer:
 
         # Per ora meglio calimero semplice
 
-        caliList = self.calimero(line)
         #caliList = self.two_way_calimero(line, cropped, cropped2)
         #caliList = self.true_calimero(line)
 
+        '''
         for j in range(1, len(caliList)):
             try:
                 if caliList[j - 1][0] - caliList[j][0] < 10:
@@ -315,6 +318,9 @@ class Binarizer:
                 listEnd.append(caliList[j][0])
             except IndexError:
                 break
+        '''
+
+
 
         listBegin.sort()
         listEnd.sort()
@@ -362,7 +368,7 @@ class Binarizer:
         for i in range(W):
             histogram.append(0)
             for j in range(H):
-                if image[j, i][0] == 0:
+                if image[j, i] == 0:
                     continue
                 else:
                     histogram[i] += 1
@@ -394,13 +400,30 @@ class Binarizer:
         height, width = image.shape[0], image.shape[1]
 
         start_row, start_col = int(height * 0), int(0)
-        # Taglia l'immagine a metà, per eliminare un certo numero di variabili che, computazionalmente, pesano.
+        # Taglia l'immagine a meta`, per eliminare un certo numero di variabili che, computazionalmente, pesano.
         end_row, end_col = int(height), int(width)
         croppedImage = image[start_row:end_row, start_col:end_col]
 
         gray = cv.cvtColor(croppedImage, cv.COLOR_BGR2GRAY)
 
         _, threshed = cv.threshold(gray, 50, 255, cv.THRESH_BINARY)
+        nb_components, output, stats, centroids = cv.connectedComponentsWithStats(threshed,
+                                                                                   connectivity=8)
+        sizes = stats[1:, -1];
+        nb_components = nb_components - 1
+
+        # Lui cancella quelle con area minore di 21 (le mette a nero)
+        min_size = 21
+
+        img2 = np.zeros((output.shape))
+
+        for i in range(0, nb_components):
+            if sizes[i] >= min_size:
+                img2[output == i + 1] = 255
+
+        return img2
+
+        '''
         output = cv.connectedComponentsWithStats(threshed, connectivity=8)
 
         num_labels = output[0]
@@ -409,16 +432,22 @@ class Binarizer:
         pts = []
 
         for label in range(num_labels):
+            # Le cose con area minore di 5, perche` non le togliamo? Cosi` tipo qualche puntino qua e la` va via
+            # (Ovviamente dico con il metodo di annerire tutto, invece di restituire i punti
             if stats[label, cv.CC_STAT_AREA] <= 20 and stats[label, cv.CC_STAT_AREA] >= 5:
                 if stats[label, cv.CC_STAT_TOP] >= 4:
                     pts.append((stats[label, cv.CC_STAT_LEFT], stats[label, cv.CC_STAT_TOP] + start_row))
 
-        for pt in pts:
-            cv.rectangle(image, (pt[0], pt[1]), (pt[0] + 6, pt[1] + 6), (0, 255, 0), thickness=1)
+        #for pt in pts:
+        #    cv.rectangle(image, (pt[0], pt[1]), (pt[0] + 6, pt[1] + 6), (0, 255, 0), thickness=1)
+
+        print(pts)
 
         cv.imshow('dots', image)
         cv.waitKey(0)
         return list(set(pts))
+        '''
+
 
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il

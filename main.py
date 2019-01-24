@@ -1,10 +1,7 @@
 import binarizer as bin
-import utils
-import stringUtils
 
 import json
 import cv2 as cv
-import numpy as np
 
 bible = 'Muenchen'
 binar = bin.Binarizer(bible)
@@ -22,11 +19,11 @@ with open('JsonUtils/angles.json') as aj:
 # Variabile a True significa che e` possibile vedere le pagine singolarmente, altrimenti provvede a salvare le frequent
 # words nella apposita cartella (richiede qualche minuto)
 
-inspector = True
+inspector = False
 
 if inspector:
 
-    for numPage in range(15, 21):
+    for numPage in range(14, 21):
         binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                             numPage,
                             '_P{x}_C0'.format(x=(numPage - 14)),
@@ -42,14 +39,17 @@ else:
     with open('JsonUtils/10mostFrequentWords.json') as fq:
         frequentWords = json.load(fq)
 
-    numPage = 18
-    frequentWord: object
     for frequentWord in frequentWords:
 
         with open('JsonUtils/{frequentWord}Positions.json'.format(frequentWord=frequentWord)) as dfw:
             wordPositions = json.load(dfw)
 
-        for numPage in range(15, 21):
+        print()
+        print(frequentWord)
+
+        for numPage in range(14, 34):
+
+            print("Page: " + str(numPage))
 
             binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                                 numPage,
