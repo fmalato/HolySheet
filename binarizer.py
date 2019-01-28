@@ -28,8 +28,6 @@ class Binarizer:
         self.read_path = 'GenesisPages/old/{bible}'.format(bible=self.bible)
         self.save_path = 'GenesisPages/old/{bible}_binarized'.format(bible=self.bible)
 
-    # TODO: decidere come comportarsi con le miniate e i caput, che cambiano colore e risultano difficili da binarizzare.
-
     def binarize(self):
 
         # Se le cartelle per salvare le immagini non esistono, vengono create, altrimenti viene riutilizzata
@@ -101,7 +99,8 @@ class Binarizer:
 
 
 
-    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles, wordPositions, frequentWord):
+    def linesCropping(self, image_path, nPage, firstColumn, secondColumn, dictionary, angles, wordPositions,
+                      frequentWord, inPagePosition):
 
         #user = input('Inserire utente (scelte possibili: Federico, Francesco): ')
         user = ' '
@@ -229,9 +228,11 @@ class Binarizer:
         # Colonna di sinistra
         j = 0
         for i in range(len(uppers)):
-
-            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
-                                                       firstColumn, user, wordPositions, frequentWord)
+            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, cropped2, j,
+                                                          dictionary, firstColumn, user, wordPositions, frequentWord,
+                                                          offsetX=columns[0], offsetY=uppers[i],
+                                                          lineThickness=(lowers[i] - uppers[i]),
+                                                          inPagePosition=inPagePosition, nPage=nPage)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -242,8 +243,11 @@ class Binarizer:
         # Colonna di destra
         j = 0
         for i in range(len(uppers)):
-            listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, cropped2, j, dictionary,
-                                                       secondColumn, user, wordPositions, frequentWord)
+            listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, cropped2, j,
+                                                          dictionary, secondColumn, user, wordPositions, frequentWord,
+                                                          offsetX=columns[2],offsetY=uppers[i],
+                                                          lineThickness=(lowers[i] - uppers[i]),
+                                                          inPagePosition=inPagePosition, nPage=nPage)
             if listBegin is not None:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
@@ -271,7 +275,8 @@ class Binarizer:
             except IndexError:
                 break
 
-    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user, wordPositions, frequentWord):
+    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user, wordPositions, frequentWord,
+                         offsetX, offsetY, lineThickness, inPagePosition, nPage):
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
@@ -288,7 +293,6 @@ class Binarizer:
 
         if frequentWord is None:
             cv.imshow('Line', line)
-            cv.waitKey(0)
             if user == 'Federico':
                 cv.moveWindow('Line', 490, 300)
 
@@ -298,29 +302,6 @@ class Binarizer:
         thW = 2
         listBegin = [x for x in range(W - 1) if lineHistRow[x] <= thW and lineHistRow[x + 1] > thW]
         listEnd = [x for x in range(W - 1) if lineHistRow[x] > thW and lineHistRow[x + 1] <= thW]
-
-        # Per ora meglio calimero semplice
-
-        #caliList = self.two_way_calimero(line, cropped, cropped2)
-        #caliList = self.true_calimero(line)
-
-        '''
-        for j in range(1, len(caliList)):
-            try:
-                if caliList[j - 1][0] - caliList[j][0] < 10:
-                    caliList.pop(j)
-            except IndexError:
-                continue
-
-        for j in range(len(caliList)):
-            try:
-                listBegin.append(caliList[j][0] + 6)
-                listEnd.append(caliList[j][0])
-            except IndexError:
-                break
-        '''
-
-
 
         listBegin.sort()
         listEnd.sort()
@@ -333,6 +314,10 @@ class Binarizer:
             wordsInLine = 6
 
         listBegin, listEnd = self.kBestCuts(line, listBegin, listEnd, wordsInLine)
+
+        if frequentWord is not None:
+            if frequentWord not in inPagePosition[nPage].keys():
+                inPagePosition[nPage][frequentWord] = []
 
         for j in range(len(listBegin)):
             try:
@@ -355,6 +340,9 @@ class Binarizer:
                     cv.imwrite('frequentWords/{frequentWord}/{nColumn}_{i}_{j}.png'.format(frequentWord=frequentWord,
                                                                                            nColumn=nColumn, i=i, j=j),
                                word)
+
+                    # Si appende una quadrupla del tipo xTopLeft, yTopLeft, Width, Height
+                    inPagePosition[nPage][frequentWord].append((offsetX + listBegin[j], offsetY, listEnd[j] - listBegin[j], lineThickness))
         i += 1
 
         return listBegin, listEnd, i
@@ -490,29 +478,6 @@ class Binarizer:
                 listDiff.append(listBegin[i] - listEnd[i - 1])
 
             orderedList = sorted(listDiff)
-
-        '''
-        nCuts = len(listBegin) - nWords
-        while nCuts > 0:
-            for i in range(len(listDiff)):
-                if listDiff[i] is 1:
-                    try:
-                        listEnd[i] = listEnd[i + 1]
-                        listBegin[i + 1] = None
-                        listEnd[i + 1] = None
-                        listDiff[i] = None
-                        break
-                    except IndexError:
-                        break
-            try:
-                listBegin.remove(None)
-                listEnd.remove(None)
-            except ValueError:
-                nCuts -= 1
-                break
-            nCuts -= 1
-
-        '''
 
         return listBegin, listEnd
 
