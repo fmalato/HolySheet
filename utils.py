@@ -1,6 +1,6 @@
 import cv2 as cv
 import json
-#import pytesseract
+import pytesseract
 import numpy as np
 import collections
 import binarizer as binar
@@ -32,62 +32,6 @@ def findCentroids(img):
     cv.imshow('centroids', img)
     cv.waitKey(0)
 
-def imageGraph(image):
-
-    height, width = image.shape[0], image.shape[1]
-
-    graph = {}
-    for row in range(height):
-        line = []
-        for col in range(width):
-            if image[row][col][0] == 255:
-                line.append(1)
-            else:
-                line.append(0)
-        graph[row] = line
-
-    visited = dfs(graph, 0, [])
-
-    return visited
-
-
-def dfs(graph, node, visited):
-    if node not in visited:
-        visited.append(node)
-        for n in graph[node]:
-            dfs(graph, n, visited)
-    return visited
-
-
-def ccomps(img):
-
-    # read the image and get the dimensions
-    h, w, _ = img.shape # assumes color image
-
-    # run tesseract, returning the bounding boxes
-    boxes = pytesseract.image_to_boxes(img) # also include any config options you use
-
-    # draw the bounding boxes on the image
-    for b in boxes.splitlines():
-        b = b.split(' ')
-        img = cv.rectangle(img, (int(b[1]), h - int(b[2])), (int(b[3]), h - int(b[4])), (0, 255, 0), 1)
-
-    # show annotated image and wait for keypress
-    cv.imshow('image', img)
-    cv.waitKey(0)
-
-def hola(img):
-
-    d = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
-    n_boxes = len(d['level'])
-    for i in range(n_boxes):
-        (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
-        cv.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 1)
-
-    cv.imshow('img', img)
-    cv.waitKey(0)
-
-# TODO: Solve intractability of the line
 
 def connectedComponents(image):
 
