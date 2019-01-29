@@ -1,6 +1,6 @@
 import cv2 as cv
 import json
-import pytesseract
+#import pytesseract
 import numpy as np
 import collections
 import binarizer as binar
@@ -94,7 +94,7 @@ def connectedComponents(image):
     height, width = image.shape[0], image.shape[1]
 
     start_row, start_col = int(height*0.5), int(0)
-    # Taglia l'immagine a metà, per eliminare un certo numero di variabili che, computazionalmente, pesano.
+    # Taglia l'immagine a meta`, per eliminare un certo numero di variabili che, computazionalmente, pesano.
     end_row, end_col = int(height), int(width)
     croppedImage = image[start_row:end_row , start_col:end_col]
 
@@ -105,11 +105,11 @@ def connectedComponents(image):
 
     numComponent = 1
 
-    # La prima riga composta da zeri sta qui per evitare errori sugli indici, più avanti viene eliminata
+    # La prima riga composta da zeri sta qui per evitare errori sugli indici, piu` avanti viene eliminata
     components = [[0 for x in range(width)]]
     conflicts = {}
 
-    # Questo tripudio di logica booleana è praticamente l'algoritmo che mappa i pixel != 0 con valori != 0
+    # Questo tripudio di logica booleana e` praticamente l'algoritmo che mappa i pixel != 0 con valori != 0
 
     for row in range(height):
         line = []
@@ -164,7 +164,7 @@ def connectedComponents(image):
             newKeys.append((el[0], conflicts[el[1]][0]))
             conflicts[el[1]].pop(0)
 
-    # Riordina il dizionario dei conflitti e li risolve con i cicli for seguenti. Purtroppo non ho modo di farlo più
+    # Riordina il dizionario dei conflitti e li risolve con i cicli for seguenti. Purtroppo non ho modo di farlo piu`
     # rapidamente (se ti viene in mente un modo, ben venga)!
 
     conflicts = sortDict(conflicts)
@@ -183,7 +183,7 @@ def connectedComponents(image):
         # json.dump(components, f)
 
     # Serve per mantenere solo le componenti connesse composte da al massimo un certo numero di pixel. Purtroppo anche
-    # questo è cubico. Sul mio fisso però funziona bene, se usiamo soltanto la riga.
+    # questo e` cubico. Sul mio fisso pero` funziona bene, se usiamo soltanto la riga.
     numPixels = {}
     for row in components:
         for col in row:

@@ -120,6 +120,7 @@ def getDictWordPosition(lines, specificWord):
 
     return wordDict
 
+'''
 
 # Leggo il ground truth e me lo salvo in un file come dizionario json, per non stare a rileggerlo ad ogni esecuzione
 
@@ -150,4 +151,4 @@ for frequentWord in mostFrequentWords:
 
 
 print("Finished")
-
+'''
