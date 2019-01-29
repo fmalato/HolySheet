@@ -3,6 +3,8 @@ import json
 import pytesseract
 import numpy as np
 import collections
+import binarizer as binar
+import os
 
 from PIL import Image
 
@@ -244,3 +246,39 @@ def sortDict(dictionary):
         newDict[key] = dictionary[key]
 
     return newDict
+
+def splitColumns(image_path, angles, nPage):
+
+    # La mia indecisione sta nel fatto che forse è più comodo salvarsi le dimensioni delle colonne in un .json,
+    # effettuare il taglio  usando l'immagine intera e poi salvare i risultati tipo in una cartella "dataset"
+
+    img = cv.imread(image_path)
+
+    # Converte l'immagine in scala di grigi
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+    # Binarizzazione
+    th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV)
+
+    numCuts = 5
+
+    imageHeight = 1250
+    imageWidth = 900
+    cutHeight = int(imageHeight/numCuts)
+    cutWidth = int(imageWidth/2)
+    if nPage % 2 is not 0:
+        cutWidth = int(imageWidth/2 + 20)
+
+    if not os.path.exists('trainImages/'.format(nPage=nPage)):
+        os.mkdir('trainImages')
+    if not os.path.exists('trainImages/images_{nPage}'.format(nPage=nPage)):
+        os.mkdir('trainImages/images_{nPage}'.format(nPage=nPage))
+    for i in range(numCuts):
+        cropped = threshed[i*cutHeight:(i+1)*cutHeight, 0:cutWidth]
+        cv.imwrite('trainImages/images_{nPage}/0000{x}.png'.format(nPage=nPage, x=i), cropped)
+    for i in range(numCuts):
+        cropped = threshed[i*cutHeight:(i+1)*cutHeight, cutWidth:imageWidth]
+        cv.imwrite('trainImages/images_{nPage}/0000{x}.png'.format(nPage=nPage, x=i+numCuts), cropped)
+
+
+

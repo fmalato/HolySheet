@@ -28,7 +28,8 @@ class Binarizer:
         self.read_path = 'GenesisPages/old/{bible}'.format(bible=self.bible)
         self.save_path = 'GenesisPages/old/{bible}_binarized'.format(bible=self.bible)
 
-    # TODO: decidere come comportarsi con le miniate e i caput, che cambiano colore e risultano difficili da binarizzare.
+    def set_save_path(self, save_path):
+        self.save_path = save_path
 
     def binarize(self):
 

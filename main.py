@@ -22,7 +22,7 @@ with open('JsonUtils/angles.json') as aj:
 # Variabile a True significa che e` possibile vedere le pagine singolarmente, altrimenti provvede a salvare le frequent
 # words nella apposita cartella (richiede qualche minuto)
 
-inspector = True
+"""inspector = True
 
 if inspector:
 
@@ -61,8 +61,12 @@ else:
                                 frequentWord
                                 )
 
-# utils.connectedComponents('testLine1.png')
+# utils.connectedComponents('testLine1.png')"""
 """for x in range(1, 7, 1):
     image = cv.imread('testLine{x}.png'.format(x=x))
     pts = binar.calimero(image)
     print(pts)"""
+
+for numPage in range(14, 22):
+    utils.splitColumns('GenesisPages/old/MuenchenRotated/Gut-{x}.png'.format(x=numPage), angles, numPage)
+
