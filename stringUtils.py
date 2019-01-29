@@ -1,8 +1,4 @@
 import json
-try:
-    import Queue as Q
-except ImportError:
-    import queue as Q
 
 # Dato un txt in ingresso, lo legge e crea un dizionario che ha come chiavi il nome della pagina con il numero di
 # colonna (0 o 1), e come valore un array di interi ordinato con il testo che indica la quantita' di parole per ogni
@@ -29,17 +25,6 @@ def getWordsCounterDict(lines):
 
     return columnsLengthDict
 
-'''
-def wordCounter(line):
-
-    words = 0
-
-    for letter in line:
-        if letter is " " or letter is "=":
-            words += 1
-
-    return words
-'''
 
 def wordCounter(line):
 

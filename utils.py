@@ -1,6 +1,6 @@
 import cv2 as cv
 import json
-import pytesseract
+#import pytesseract
 import numpy as np
 import collections
 import binarizer as binar
@@ -191,20 +191,22 @@ def sortDict(dictionary):
 
     return newDict
 
-def splitColumns(image_path, angles, nPage):
+def splitColumns(image_path, nPage):
 
     # La mia indecisione sta nel fatto che forse è più comodo salvarsi le dimensioni delle colonne in un .json,
     # effettuare il taglio  usando l'immagine intera e poi salvare i risultati tipo in una cartella "dataset"
 
     img = cv.imread(image_path)
 
-    # Converte l'immagine in scala di grigi
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-
-    # Binarizzazione
-    th, threshed = cv.threshold(gray, 127, 255, cv.THRESH_BINARY_INV)
-
     numCuts = 5
+
+    with open('instances_COCOGenesis.json') as instances:
+        COCOGenesis = json.load(instances)
+
+    with open('inPagePositions.json') as pp:
+        pagePositions = json.load(pp)
+
+    # TODO inserire ogni immagine tagliata in COCOGenesis["images"] compilando i relativi campi (append.({roba...})
 
     imageHeight = 1250
     imageWidth = 900
@@ -217,12 +219,19 @@ def splitColumns(image_path, angles, nPage):
         os.mkdir('trainImages')
     if not os.path.exists('trainImages/images_{nPage}'.format(nPage=nPage)):
         os.mkdir('trainImages/images_{nPage}'.format(nPage=nPage))
+
+    # TODO leggere dal file PagePositions le posizioni ci ciascuna parola e provare ad inserirle: idea stupida potrebbe
+    #  essere quella di vedere se ci sta con un try except (se effettivamente appartiene tutta all'immaginetta
+    #  tagliata, altrimenti continue. Salvare le annotazioni nel COCOGenesis
+
     for i in range(numCuts):
-        cropped = threshed[i*cutHeight:(i+1)*cutHeight, 0:cutWidth]
+        cropped = img[i*cutHeight:(i+1)*cutHeight, 0:cutWidth]
         cv.imwrite('trainImages/images_{nPage}/0000{x}.png'.format(nPage=nPage, x=i), cropped)
     for i in range(numCuts):
-        cropped = threshed[i*cutHeight:(i+1)*cutHeight, cutWidth:imageWidth]
+        cropped = img[i*cutHeight:(i+1)*cutHeight, cutWidth:imageWidth]
         cv.imwrite('trainImages/images_{nPage}/0000{x}.png'.format(nPage=nPage, x=i+numCuts), cropped)
 
+
+    # TODO ricordarsi di risalvare il json delle annotazioni :)
 
 

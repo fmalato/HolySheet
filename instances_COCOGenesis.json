@@ -1,0 +1,43 @@
+{
+  "info": {
+    "description": "Genesis 2019 Dataset",
+    "url": "",
+    "version": "1.0",
+    "year": 2019,
+    "contributor": "Francesco Gradi and Federico Malato",
+    "date_created": "2017/29/01"
+  },
+  "licenses": [
+    {
+        "url": "https://www.unifi.it/",
+        "id": 1,
+        "name": "University License"
+    }
+  ],
+  "images": [
+    {
+        "license": 1,
+        "file_name": "00000.jpg",
+        "coco_url": "",
+        "height": 250,
+        "width": 450,
+        "date_captured": "Today",
+        "flickr_url": "",
+        "id": 192000
+    }
+  ],
+  "annotations": [],
+  "categories": [
+    {"supercategory": "word","id": 0,"name": "et"},
+    {"supercategory": "word","id": 1,"name": "in"},
+    {"supercategory": "word","id": 2,"name": "ad"},
+    {"supercategory": "word","id": 3,"name": "est"},
+    {"supercategory": "word","id": 4,"name": "de"},
+    {"supercategory": "word","id": 5,"name": "Deus"},
+    {"supercategory": "word","id": 6,"name": "autem"},
+    {"supercategory": "word","id": 7,"name": "quae"},
+    {"supercategory": "word","id": 8,"name": "terra"},
+    {"supercategory": "word","id": 9,"name": "super"},
+    {"supercategory": "word","id": 10,"name": "non"}
+  ]
+}
