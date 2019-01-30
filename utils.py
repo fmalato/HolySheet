@@ -191,7 +191,7 @@ def sortDict(dictionary):
 
     return newDict
 
-def splitColumns(image_path, nPage):
+def splitColumns(image_path, nPage, numImage):
 
     # La mia indecisione sta nel fatto che forse è più comodo salvarsi le dimensioni delle colonne in un .json,
     # effettuare il taglio  usando l'immagine intera e poi salvare i risultati tipo in una cartella "dataset"
@@ -219,19 +219,128 @@ def splitColumns(image_path, nPage):
         os.mkdir('trainImages')
     if not os.path.exists('trainImages/images_{nPage}'.format(nPage=nPage)):
         os.mkdir('trainImages/images_{nPage}'.format(nPage=nPage))
+    if not os.path.exists('train2019'):
+        os.mkdir('train2019')
 
     # TODO leggere dal file PagePositions le posizioni ci ciascuna parola e provare ad inserirle: idea stupida potrebbe
     #  essere quella di vedere se ci sta con un try except (se effettivamente appartiene tutta all'immaginetta
     #  tagliata, altrimenti continue. Salvare le annotazioni nel COCOGenesis
 
+    with open('trainImages/images_{nPage}/imgCoords.json'.format(nPage=nPage), 'w+') as f:
+        for i in range(numCuts):
+            cropped = img[i*cutHeight:(i+1)*cutHeight, 0:cutWidth]
+            cv.imwrite('trainImages/images_{nPage}/0000{x}.png'.format(nPage=nPage, x=i), cropped)
+            json.dump((i*cutHeight, 0, cutWidth, cutHeight), f)
+            f.write(', \n')
+        for i in range(numCuts):
+            cropped = img[i*cutHeight:(i+1)*cutHeight, cutWidth:imageWidth]
+            cv.imwrite('trainImages/images_{nPage}/0000{x}.png'.format(nPage=nPage, x=i+numCuts), cropped)
+            json.dump((i * cutHeight, cutWidth, imageWidth - cutWidth, cutHeight), f)
+            f.write(', \n')
+
     for i in range(numCuts):
         cropped = img[i*cutHeight:(i+1)*cutHeight, 0:cutWidth]
-        cv.imwrite('trainImages/images_{nPage}/0000{x}.png'.format(nPage=nPage, x=i), cropped)
+        cv.imwrite('train2019/{x}.png'.format(x=i+numImage-1), cropped)
+
     for i in range(numCuts):
         cropped = img[i*cutHeight:(i+1)*cutHeight, cutWidth:imageWidth]
-        cv.imwrite('trainImages/images_{nPage}/0000{x}.png'.format(nPage=nPage, x=i+numCuts), cropped)
+        cv.imwrite('train2019/{x}.png'.format(x=i+numCuts+numImage-1), cropped)
 
+    numImage += 2*numCuts
+
+    return numImage
 
     # TODO ricordarsi di risalvare il json delle annotazioni :)
+
+def COCOdataset():
+
+    with open('instances_COCOGenesis.json') as instances:
+        COCOGenesis = json.load(instances)
+
+    id = 0
+    for file in sorted(os.listdir('train2019/')):
+        img = cv.imread('train2019/{file}'.format(file=file))
+        height, width = img.shape[:2]
+        COCOGenesis["images"].append({"license": 1,
+                                      "file_name": file,
+                                      "coco_url": "",
+                                      "height": height,
+                                      "width": width,
+                                      "date_captured": "Today",
+                                      "flickr_url": "",
+                                      "id": 192000+id})
+        id += 1
+
+    with open('instances_COCOGenesis.json', 'w') as instances:
+        json.dump(COCOGenesis, instances, indent=4)
+
+# Le immagini sono in ordine, quindi so come trovarle basandomi sul numero dell'immagine.
+# Ogni pagina ha 10 immagini, quindi posso anche scegliere la pagina corretta in base al numero dell'immagine
+# Conosco come vengono fatti i tagli: pagine pari -> 250, metà; pagine dispari: 250, 470 + 430
+# posso quindi usare le coordinate in pagePositions per trovare le posizioni relative con queste informazioni
+
+def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight):
+
+    # formato di pagePositions: [x, y, bboxwidth, bboxheight]
+    numCuts = 5
+
+    with open('inPagePositions.json') as pp:
+        pagePositions = json.load(pp)
+        pagePositions = collections.OrderedDict(pagePositions)
+
+    with open('instances_COCOGenesis.json') as instances:
+        COCOGenesis = json.load(instances)
+
+    for x in range(30, 34, 1):
+        del pagePositions[str(x)]
+
+    # accesso al singolo elemento di pagePositions: pagePositions['page']['word'][el]
+
+    id = 0
+    keys = [key for key in pagePositions[str(nPage)].keys()]
+    for key in pagePositions[str(nPage)].keys():
+        for coord in pagePositions[str(nPage)][key]:
+            if coord[0] < cutWidthLeft:
+                for x in range(numCuts):
+                    if coord[1] <= (x + 1)*cutHeight and coord[1] >= x*cutHeight:
+                        pagePos = x
+                        posX = coord[0]
+                        posY = (x + 1)*cutHeight - coord[1]
+                        COCOGenesis["annotations"].append({"id": id,
+                                                          "category_id": key,
+                                                          "iscrowd": 0,
+                                                          "segmentation": [],
+                                                          "image_id": (nPage - 14)*10 + pagePos + 192000,
+                                                          "area": coord[2]*coord[3],
+                                                          "bbox": [posX, posY, coord[2], coord[3]]})
+                        id += 1
+                        break
+            if coord[0] > cutWidthLeft:
+                for x in range(numCuts):
+                    if coord[1] <= (x + 1)*cutHeight and coord[1] >= x*cutHeight:
+                        pagePos = x + numCuts
+                        posX = coord[0] - cutWidthLeft
+                        posY = (x + 1)*cutHeight - coord[1]
+                        COCOGenesis["annotations"].append({"id": id,
+                                                          "category_id": key,
+                                                          "iscrowd": 0,
+                                                          "segmentation": [],
+                                                          "image_id": (nPage - 14)*10 + pagePos + 192000,
+                                                          "area": coord[2]*coord[3],
+                                                          "bbox": [posX, posY, coord[2], coord[3]]})
+                        id += 1
+                        break
+
+    for el in COCOGenesis["annotations"]:
+        for key in keys:
+            if el["category_id"] == key:
+                el["category_id"] = keys.index(key)
+
+    with open('annotationsTry.json', 'w+') as f:
+        json.dump(COCOGenesis, f, indent=4)
+
+
+
+
 
 
