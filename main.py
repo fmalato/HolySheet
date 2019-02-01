@@ -12,13 +12,13 @@ binar = bin.Binarizer(bible)
 with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
     dictionary = json.load(groundTruth)
 
-#with open('JsonUtils/angles.json') as aj:
- #   angles = json.load(aj)
+with open('JsonUtils/angles.json') as aj:
+    angles = json.load(aj)
 
 # Variabile a True significa che e` possibile vedere le pagine singolarmente, altrimenti provvede a salvare le frequent
 # words nella apposita cartella (richiede qualche minuto)
 """
-inspector = True
+inspector = False
 
 if inspector:
 
@@ -74,9 +74,9 @@ else:
                                 )
 
     with open('inPagePositions.json', 'w') as pp:
-        json.dump(inPagePositions, pp)"""
+        json.dump(inPagePositions, pp)
 
-
+"""
 
 """# utils.connectedComponents('testLine1.png')
 for x in range(1, 7, 1):
@@ -85,7 +85,7 @@ for x in range(1, 7, 1):
     print(pts)"""
 
 """numImage = 1
-for numPage in range(34, 62):
+for numPage in range(14, 29):
     numImage = utils.splitColumns('GenesisPages/old/MuenchenRotated/Gut-{x}.png'.format(x=numPage), numPage, numImage)
 
 for file in os.listdir("test2019/"):
