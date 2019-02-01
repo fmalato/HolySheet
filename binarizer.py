@@ -76,6 +76,8 @@ class Binarizer:
 
     def rotateOriginals(self, image_path, nPage, angles):
 
+        print("Rotating {path}...".format(path=image_path))
+
         img = cv.imread(image_path)
 
         # Converte l'immagine in scala di grigi
@@ -414,31 +416,6 @@ class Binarizer:
 
         return img2
 
-        '''
-        output = cv.connectedComponentsWithStats(threshed, connectivity=8)
-
-        num_labels = output[0]
-        labels = output[1]
-        stats = output[2]
-        pts = []
-
-        for label in range(num_labels):
-            # Le cose con area minore di 5, perche` non le togliamo? Cosi` tipo qualche puntino qua e la` va via
-            # (Ovviamente dico con il metodo di annerire tutto, invece di restituire i punti
-            if stats[label, cv.CC_STAT_AREA] <= 20 and stats[label, cv.CC_STAT_AREA] >= 5:
-                if stats[label, cv.CC_STAT_TOP] >= 4:
-                    pts.append((stats[label, cv.CC_STAT_LEFT], stats[label, cv.CC_STAT_TOP] + start_row))
-
-        #for pt in pts:
-        #    cv.rectangle(image, (pt[0], pt[1]), (pt[0] + 6, pt[1] + 6), (0, 255, 0), thickness=1)
-
-        print(pts)
-
-        cv.imshow('dots', image)
-        cv.waitKey(0)
-        return list(set(pts))
-        '''
-
 
     # Funzione che decide quali tagli togliere seguendo un'euristica: ordina i tagli in base alla differenza tra il
     # precedente e il successivo. Quelli con distanza minore sono i canditati ad essere tolti; prende in ingresso il
@@ -511,20 +488,21 @@ class Binarizer:
         #       calcola le distanze, l'ipotenusa e determina sin, cos dell'angolo. Usa arcsin e arccos per
         #       trovare l'angolo e restituiscilo
 
+        print("Finding rotation angle of {path}...".format(path=image_path))
         image = cv.imread(image_path, 0)
 
         img_path = image_path[image_path.find('Gut'):]
 
         _, thresh1 = cv.threshold(image, 70, 255, cv.THRESH_BINARY_INV)
         img_path = img_path[:img_path.find('.jpg')]
-        plt.imsave('temp/{img_name}.jpg'.format(img_name=img_path), thresh1)
+        plt.imsave('tmp/{img_name}.jpg'.format(img_name=img_path), thresh1)
 
-        imgx = Image.open('temp/{img_name}.jpg'.format(img_name=img_path)).convert('LA')
+        imgx = Image.open('tmp/{img_name}.jpg'.format(img_name=img_path)).convert('LA')
 
-        imgx.save('temp/{img_name}.png'.format(img_name=img_path))
-        os.remove('temp/{img_name}.jpg'.format(img_name=img_path))
+        imgx.save('tmp/{img_name}.png'.format(img_name=img_path))
+        os.remove('tmp/{img_name}.jpg'.format(img_name=img_path))
 
-        threshed = cv.imread('temp/{img_name}.png'.format(img_name=img_path))
+        threshed = cv.imread('tmp/{img_name}.png'.format(img_name=img_path))
 
         H, W = threshed.shape[:2]
 
@@ -605,48 +583,7 @@ class Binarizer:
         if bottomLeftX > topLeftX:
             rotationAngle = - rotationAngle
 
-        os.remove('temp/{img_name}.png'.format(img_name=img_path))
+        os.remove('tmp/{img_name}.png'.format(img_name=img_path))
 
         return rotationAngle
 
-    def true_calimero(self, image):
-
-        consolidatedPts = []
-
-        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-        _, threshed = cv.threshold(gray, 50, 255, cv.THRESH_BINARY)
-
-        ptsCoords = utils.connectedComponents(image)
-
-        halfHeight = int((image.shape[0]/2))
-        threeQuartHeight = int(3*(image.shape[0]/4))
-
-        allZeros = True
-
-        for pt in ptsCoords:
-            if pt[0] >= halfHeight - 4 and pt[0] <= halfHeight + 6:
-                for pixel in range(0, (halfHeight - 4), 1):
-                    if threshed[pixel][pt[1]] == 255:
-                        allZeros = False
-                        break
-                for pixel in range((halfHeight + 6), image.shape[0], 1):
-                    if threshed[pixel][pt[1]] == 255:
-                        allZeros = False
-                        break
-                if allZeros:
-                    consolidatedPts.append(pt)
-            allZeros = True
-            if pt[0] >= threeQuartHeight - 4 and pt[0] <= threeQuartHeight + 4:
-                for pixel in range(0, threeQuartHeight - 3, 1):
-                    if threshed[pixel][pt[1]] == 255:
-                        allZeros = False
-                for pixel in range(threeQuartHeight + 4, image.shape[0], 1):
-                    if threshed[pixel][pt[1]] == 255:
-                        allZeros = False
-                if allZeros:
-                    consolidatedPts.append(pt)
-            allZeros = True
-
-        print(consolidatedPts)
-
-        return consolidatedPts

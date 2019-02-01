@@ -12,8 +12,8 @@ binar = bin.Binarizer(bible)
 with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
     dictionary = json.load(groundTruth)
 
-with open('JsonUtils/angles.json') as aj:
-    angles = json.load(aj)
+#with open('JsonUtils/angles.json') as aj:
+ #   angles = json.load(aj)
 
 # Variabile a True significa che e` possibile vedere le pagine singolarmente, altrimenti provvede a salvare le frequent
 # words nella apposita cartella (richiede qualche minuto)
@@ -85,12 +85,13 @@ for x in range(1, 7, 1):
     print(pts)"""
 
 """numImage = 1
-for numPage in range(14, 29):
+for numPage in range(34, 62):
     numImage = utils.splitColumns('GenesisPages/old/MuenchenRotated/Gut-{x}.png'.format(x=numPage), numPage, numImage)
 
-for file in os.listdir("train2019/"):
-    os.rename("train2019/{file}".format(file=file), "train2019/{file}".format(file=file.zfill(9)))"""
+for file in os.listdir("test2019/"):
+    os.rename("test2019/{file}".format(file=file), "test2019/{file}".format(file=file.zfill(9)))"""
 
+"""id = 0
 for x in range(14, 29, 1):
     if x % 2 == 0:
         cutWidthLeft = 450
@@ -98,6 +99,21 @@ for x in range(14, 29, 1):
     else:
         cutWidthLeft = 470
         cutWidthRight = 430
-    utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutWidthRight=cutWidthRight, cutHeight=250)
+    id = utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutHeight=250, id=id)"""
+
+angs = {}
+for x in range(34, 62):
+    angle = binar.findRotationAngle('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=x))
+    angs[str(x)] = angle
+
+with open('angles_34-62.json', 'w+') as f:
+    json.dump(angs, f)
+
+for x in range(34, 62):
+    binar.rotateOriginals('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=x), x, angs)
+
+# Istruzioni: PRIMA ESEGUI LA PARTE NON COMMENTATA, cosi' da trovare gli angoli e ruotare le immagini (ci mette 2-3 min)
+#             Dopo, scommenta da "numImage = 1" fino a "zfill(9)". il ciclo dopo si occupa delle annotations, ma per il
+#             test non servono. Per il validation, aspetto i file caricati senza annotations, poi ci penso io! c:
 
 
