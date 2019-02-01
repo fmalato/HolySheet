@@ -18,7 +18,7 @@ with open('JsonUtils/angles.json') as aj:
 # Variabile a True significa che e` possibile vedere le pagine singolarmente, altrimenti provvede a salvare le frequent
 # words nella apposita cartella (richiede qualche minuto)
 """
-inspector = True
+inspector = False
 
 if inspector:
 
@@ -74,23 +74,18 @@ else:
                                 )
 
     with open('inPagePositions.json', 'w') as pp:
-        json.dump(inPagePositions, pp)"""
+        json.dump(inPagePositions, pp)
 
+"""
 
-
-"""# utils.connectedComponents('testLine1.png')
-for x in range(1, 7, 1):
-    image = cv.imread('testLine{x}.png'.format(x=x))
-    pts = binar.calimero(image)
-    print(pts)"""
-
-"""numImage = 1
+numImage = 1
 for numPage in range(14, 29):
     numImage = utils.splitColumns('GenesisPages/old/MuenchenRotated/Gut-{x}.png'.format(x=numPage), numPage, numImage)
 
 for file in os.listdir("train2019/"):
-    os.rename("train2019/{file}".format(file=file), "train2019/{file}".format(file=file.zfill(9)))"""
+    os.rename("train2019/{file}".format(file=file), "train2019/{file}".format(file=file.zfill(9)))
 
+annotationId = 0
 for x in range(14, 29, 1):
     if x % 2 == 0:
         cutWidthLeft = 450
@@ -98,6 +93,6 @@ for x in range(14, 29, 1):
     else:
         cutWidthLeft = 470
         cutWidthRight = 430
-    utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutWidthRight=cutWidthRight, cutHeight=250)
-
+    annotationId = utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutWidthRight=cutWidthRight, cutHeight=250,
+                                        annotationId=annotationId)
 

@@ -5,6 +5,7 @@ import numpy as np
 import collections
 import binarizer as binar
 import os
+import matplotlib.pyplot as plt
 
 from PIL import Image
 
@@ -279,7 +280,7 @@ def COCOdataset():
 # Conosco come vengono fatti i tagli: pagine pari -> 250, metà; pagine dispari: 250, 470 + 430
 # posso quindi usare le coordinate in pagePositions per trovare le posizioni relative con queste informazioni
 
-def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight):
+def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight, annotationId):
 
     # formato di pagePositions: [x, y, bboxwidth, bboxheight]
     numCuts = 5
@@ -288,7 +289,7 @@ def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight):
         pagePositions = json.load(pp)
         pagePositions = collections.OrderedDict(pagePositions)
 
-    with open('instances_COCOGenesis.json') as instances:
+    with open('annotationsTry.json') as instances:
         COCOGenesis = json.load(instances)
 
     for x in range(30, 34, 1):
@@ -296,7 +297,6 @@ def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight):
 
     # accesso al singolo elemento di pagePositions: pagePositions['page']['word'][el]
 
-    id = 0
     keys = [key for key in pagePositions[str(nPage)].keys()]
     for key in pagePositions[str(nPage)].keys():
         for coord in pagePositions[str(nPage)][key]:
@@ -305,30 +305,44 @@ def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight):
                     if coord[1] <= (x + 1)*cutHeight and coord[1] >= x*cutHeight:
                         pagePos = x
                         posX = coord[0]
-                        posY = (x + 1)*cutHeight - coord[1]
-                        COCOGenesis["annotations"].append({"id": id,
+                        posY = coord[1] - (x)*cutHeight
+
+                        #word = img[posY : posY + coord[3], posX : posX + coord[2]]
+                        #cv.imshow('word', word)
+                        #cv.waitKey(0)
+
+                        COCOGenesis["annotations"].append({"id": annotationId,
                                                           "category_id": key,
                                                           "iscrowd": 0,
-                                                          "segmentation": [],
+                                                          "segmentation": [[posX, posY, posX + coord[2], posY,
+                                                                            posX + coord[2], posY +coord[3],
+                                                                            posX, posY + coord[3]]],
                                                           "image_id": (nPage - 14)*10 + pagePos + 192000,
                                                           "area": coord[2]*coord[3],
                                                           "bbox": [posX, posY, coord[2], coord[3]]})
-                        id += 1
+                        annotationId += 1
                         break
-            if coord[0] > cutWidthLeft:
+            if coord[0] >= cutWidthLeft:
                 for x in range(numCuts):
                     if coord[1] <= (x + 1)*cutHeight and coord[1] >= x*cutHeight:
                         pagePos = x + numCuts
                         posX = coord[0] - cutWidthLeft
-                        posY = (x + 1)*cutHeight - coord[1]
-                        COCOGenesis["annotations"].append({"id": id,
+                        posY = coord[1] - (x) * cutHeight
+
+                        #word = img[posY: posY + coord[3], posX: posX + coord[2]]
+                        #cv.imshow('word', word)
+                        #cv.waitKey(0)
+
+                        COCOGenesis["annotations"].append({"id": annotationId,
                                                           "category_id": key,
                                                           "iscrowd": 0,
-                                                          "segmentation": [],
+                                                          "segmentation": [[posX, posY, posX + coord[2], posY,
+                                                                            posX + coord[2], posY +coord[3],
+                                                                            posX, posY + coord[3]]],
                                                           "image_id": (nPage - 14)*10 + pagePos + 192000,
                                                           "area": coord[2]*coord[3],
                                                           "bbox": [posX, posY, coord[2], coord[3]]})
-                        id += 1
+                        annotationId += 1
                         break
 
     for el in COCOGenesis["annotations"]:
@@ -338,6 +352,8 @@ def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight):
 
     with open('annotationsTry.json', 'w+') as f:
         json.dump(COCOGenesis, f, indent=4)
+
+    return annotationId
 
 
 
