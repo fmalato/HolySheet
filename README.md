@@ -41,7 +41,5 @@ spotting the periods and the full stops. This way we obtain the single word segm
 
 </div>
 
-</div>
-
 Moreover the software can split the images into sub-images and generate the annotations for them, making them suitable 
 for a COCO-based neural network.
