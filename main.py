@@ -76,40 +76,36 @@ else:
     with open('inPagePositions.json', 'w') as pp:
         json.dump(inPagePositions, pp)
 
-"""
 
-"""# utils.connectedComponents('testLine1.png')
-for x in range(1, 7, 1):
-    image = cv.imread('testLine{x}.png'.format(x=x))
-    pts = binar.calimero(image)
-    print(pts)"""
 
-"""numImage = 1
-for numPage in range(14, 29):
+numImage = 1
+for numPage in range(34, 63):
     numImage = utils.splitColumns('GenesisPages/old/MuenchenRotated/Gut-{x}.png'.format(x=numPage), numPage, numImage)
 
 for file in os.listdir("test2019/"):
-    os.rename("test2019/{file}".format(file=file), "test2019/{file}".format(file=file.zfill(9)))"""
+    os.rename("test2019/{file}".format(file=file), "test2019/{file}".format(file=file.zfill(9)))
 
-"""id = 0
-for x in range(14, 29, 1):
+utils.COCOdataset()
+
+id = 0
+for x in range(29, 34, 1):
     if x % 2 == 0:
         cutWidthLeft = 450
         cutWidthRight = 450
     else:
         cutWidthLeft = 470
         cutWidthRight = 430
-    id = utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutHeight=250, id=id)"""
-
+    id = utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutHeight=250, id=id)
+"""
 angs = {}
-for x in range(34, 62):
+for x in range(34, 63):
     angle = binar.findRotationAngle('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=x))
     angs[str(x)] = angle
 
 with open('angles_34-62.json', 'w+') as f:
     json.dump(angs, f)
 
-for x in range(34, 62):
+for x in range(34, 63):
     binar.rotateOriginals('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=x), x, angs)
 
 # Istruzioni: PRIMA ESEGUI LA PARTE NON COMMENTATA, cosi' da trovare gli angoli e ruotare le immagini (ci mette 2-3 min)

@@ -53,12 +53,12 @@ def splitColumns(image_path, nPage, numImage):
 
 def COCOdataset():
 
-    with open('instances_COCOGenesis.json') as instances:
+    with open('annotationsTry.json') as instances:
         COCOGenesis = json.load(instances)
 
     id = 0
-    for file in sorted(os.listdir('train2019/')):
-        img = cv.imread('train2019/{file}'.format(file=file))
+    for file in sorted(os.listdir('valid2019/')):
+        img = cv.imread('valid2019/{file}'.format(file=file))
         height, width = img.shape[:2]
         COCOGenesis["images"].append({"license": 1,
                                       "file_name": file,
@@ -67,10 +67,10 @@ def COCOdataset():
                                       "width": width,
                                       "date_captured": "Today",
                                       "flickr_url": "",
-                                      "id": 192000+id})
+                                      "id": 188000+id})
         id += 1
 
-    with open('instances_COCOGenesis.json', 'w') as instances:
+    with open('annotationsTry.json', 'w') as instances:
         json.dump(COCOGenesis, instances, indent=4)
 
 
@@ -82,11 +82,11 @@ def setAnnotations(nPage, cutWidthLeft, cutHeight, id):
         pagePositions = json.load(pp)
         pagePositions = collections.OrderedDict(pagePositions)
 
-    with open('instances_COCOGenesis.json') as instances:
+    with open('annotationsTry.json') as instances:
         COCOGenesis = json.load(instances)
 
-    for x in range(30, 34, 1):
-        del pagePositions[str(x)]
+    #for x in range(30, 34, 1):
+    #    del pagePositions[str(x)]
 
     keys = [key for key in pagePositions[str(nPage)].keys()]
     for key in pagePositions[str(nPage)].keys():
@@ -127,7 +127,7 @@ def setAnnotations(nPage, cutWidthLeft, cutHeight, id):
             if el["category_id"] == key:
                 el["category_id"] = keys.index(key)
 
-    with open('instances_COCOGenesis.json', 'w+') as f:
+    with open('annotationsTry.json', 'w+') as f:
         json.dump(COCOGenesis, f, indent=4)
 
     return id
