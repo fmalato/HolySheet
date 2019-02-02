@@ -9,15 +9,15 @@ Word crawler for ancient documents.
 <img src="demoImages/binarizedColumn.png" width="152px" float="right"/> 
 </div>
 
-Original Genesis image. 
+Original <b>Genesis</b> image and binarization 
 
 <img src="demoImages/binarizedRow.png"/>
 
-Column and line segmentation.
+<b>Line</b> segmentation
 
 <img src="demoImages/binarizedWord.png"/>
 
-Word segmentation.
+<b>Word</b> segmentation
 
 </div>
 
@@ -28,4 +28,18 @@ like Genesis (from Holy Bible). In particular it can:
 
 - **Get word segmentation, using histogram pixel techniques and specific heuristics**
 
-- **Prepare a dataset for Detectron neural network**
+- **Prepare a dataset for Detectron neural network (faster)**
+
+- **Last part want to train a network to find words in new similar documents**
+
+### Requirements
+
+- python packages
+    - opencv
+    - matplotlib
+    - numpy
+    - pillow
+
+For the second part (https://github.com/roytseng-tw/Detectron.pytorch) we used PyTorch.
+
+### How To Use
