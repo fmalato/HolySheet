@@ -3,11 +3,11 @@ Word crawler for ancient documents.
 
 <div align="center">
 
-<img src="demoImages/Gut-24.png"/>
+<img src="demoImages/Gut-24.png" width="450px"/>
 
 Original Genesis image. 
 
-<img src="demoImages/binarizedColumn.png"/> 
+<img src="demoImages/binarizedColumn.png" width="450px"/> 
 
 <img src="demoImages/binarizedRow.png"/>
 
