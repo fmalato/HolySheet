@@ -1,6 +1,3 @@
-# TODO: aprire il file con le annotations e quello con i risultati, disegnare un rettangolo rosso per ogni elemento
-#       delle annotations, verde per ogni result. Confrontarli e trovare le statistiche utili.
-
 import json
 import os
 import cv2
