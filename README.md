@@ -19,7 +19,7 @@ OpenCV's threshold() method, our image becomes binarized. An image
 <img src="demoImages/binarizedColumn.png" width="152px" float="right"/> 
 </div>
 
-Original Genesis image. 
+Original <b>Genesis</b> image and binarization. 
 </div>
 After that, we make a histogram so that we can obtain a segmentation of the single line.
 <div align="center">
@@ -27,7 +27,7 @@ After that, we make a histogram so that we can obtain a segmentation of the sing
 <div>
 <img src="demoImages/binarizedRow.png"/>
 
-Column and line segmentation.
+<b>Line</b> segmentation.
 </div>
 Finally, we repeat the histogram and we affine the results through another method call, calimero(), which helps us 
 spotting the periods and the full stops. This way we obtain the single word segmentation.
@@ -35,7 +35,8 @@ spotting the periods and the full stops. This way we obtain the single word segm
 <div align="center>
 <img src="demoImages/binarizedWord.png"/>
 
-Word segmentation.
+<b>Word</b> segmentation
+
 </div>
 
 </div>
