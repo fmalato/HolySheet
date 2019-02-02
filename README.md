@@ -22,7 +22,7 @@ Word segmentation.
 This software provides for binarization and word segmentation of ancient document,
 like Genesis (from Holy Bible). In particular it can:
 
-- **Elaborate png scans of ancient document with python libraries like openCV**
+- **Elaborate .png scans of ancient document with python libraries like openCV**
 
 - **Get word segmentation, using histogram pixel techniques and specific heuristics**
 
