@@ -104,7 +104,7 @@ def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight, annotationId):
                                                           "segmentation": [[posX, posY, posX + coord[2], posY,
                                                                             posX + coord[2], posY +coord[3],
                                                                             posX, posY + coord[3]]],
-                                                          "image_id": (nPage - 14)*10 + pagePos + 192000,
+                                                          "image_id": (nPage - 14)*10 + pagePos + 188000,
                                                           "area": coord[2]*coord[3],
                                                           "bbox": [posX, posY, coord[2], coord[3]]})
                         annotationId += 1
@@ -122,7 +122,7 @@ def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight, annotationId):
                                                           "segmentation": [[posX, posY, posX + coord[2], posY,
                                                                             posX + coord[2], posY +coord[3],
                                                                             posX, posY + coord[3]]],
-                                                          "image_id": (nPage - 14)*10 + pagePos + 192000,
+                                                          "image_id": (nPage - 14)*10 + pagePos + 188000,
                                                           "area": coord[2]*coord[3],
                                                           "bbox": [posX, posY, coord[2], coord[3]]})
                         annotationId += 1
