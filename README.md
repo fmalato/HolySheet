@@ -9,7 +9,7 @@ document, like Genesis (from Holy Bible). In particular it can:
 - **Prepare a dataset for Detectron neural network**
 
 To achieve that we process an image in several ways: first, we perform a rotation in order to straighten it up. Through 
-OpenCV's threshold() method, our image becomes binarized. An image
+OpenCV's threshold() method, our image becomes binarized.
 
 <div align="center">
 
@@ -22,12 +22,14 @@ OpenCV's threshold() method, our image becomes binarized. An image
 Original <b>Genesis</b> image and binarization. 
 </div>
 After that, we make a histogram so that we can obtain a segmentation of the single line.
+
 <div align="center">
 
 <div>
 <img src="demoImages/binarizedRow.png"/>
 
 <b>Line</b> segmentation.
+</div>
 </div>
 Finally, we repeat the histogram and we affine the results through another method call, calimero(), which helps us 
 spotting the periods and the full stops. This way we obtain the single word segmentation.
