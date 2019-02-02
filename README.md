@@ -4,9 +4,9 @@ Word crawler for ancient documents.
 <div align="center">
 
 <div>
-<img src="demoImages/Gut-24.png" width="250px" float="left"/>
+<img src="demoImages/Gut-24.png" width="350px" float="left"/>
 
-<img src="demoImages/binarizedColumn.png" width="100px" float="right"/> 
+<img src="demoImages/binarizedColumn.png" width="175px" float="right"/> 
 </div>
 
 Original Genesis image. 
