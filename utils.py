@@ -74,7 +74,7 @@ def COCOdataset():
         json.dump(COCOGenesis, instances, indent=4)
 
 
-def setAnnotations(nPage, cutWidthLeft, cutHeight, id):
+def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight, annotationId):
 
     numCuts = 5
 
@@ -96,30 +96,36 @@ def setAnnotations(nPage, cutWidthLeft, cutHeight, id):
                     if coord[1] <= (x + 1)*cutHeight and coord[1] >= x*cutHeight:
                         pagePos = x
                         posX = coord[0]
-                        posY = (x + 1)*cutHeight - coord[1]
-                        COCOGenesis["annotations"].append({"id": id,
+                        posY = coord[1] - (x)*cutHeight
+
+                        COCOGenesis["annotations"].append({"id": annotationId,
                                                           "category_id": key,
                                                           "iscrowd": 0,
-                                                          "segmentation": [],
+                                                          "segmentation": [[posX, posY, posX + coord[2], posY,
+                                                                            posX + coord[2], posY +coord[3],
+                                                                            posX, posY + coord[3]]],
                                                           "image_id": (nPage - 14)*10 + pagePos + 192000,
                                                           "area": coord[2]*coord[3],
                                                           "bbox": [posX, posY, coord[2], coord[3]]})
-                        id += 1
+                        annotationId += 1
                         break
-            if coord[0] > cutWidthLeft:
+            if coord[0] >= cutWidthLeft:
                 for x in range(numCuts):
                     if coord[1] <= (x + 1)*cutHeight and coord[1] >= x*cutHeight:
                         pagePos = x + numCuts
                         posX = coord[0] - cutWidthLeft
-                        posY = (x + 1)*cutHeight - coord[1]
-                        COCOGenesis["annotations"].append({"id": id,
+                        posY = coord[1] - (x) * cutHeight
+
+                        COCOGenesis["annotations"].append({"id": annotationId,
                                                           "category_id": key,
                                                           "iscrowd": 0,
-                                                          "segmentation": [],
+                                                          "segmentation": [[posX, posY, posX + coord[2], posY,
+                                                                            posX + coord[2], posY +coord[3],
+                                                                            posX, posY + coord[3]]],
                                                           "image_id": (nPage - 14)*10 + pagePos + 192000,
                                                           "area": coord[2]*coord[3],
                                                           "bbox": [posX, posY, coord[2], coord[3]]})
-                        id += 1
+                        annotationId += 1
                         break
 
     for el in COCOGenesis["annotations"]:
@@ -130,7 +136,7 @@ def setAnnotations(nPage, cutWidthLeft, cutHeight, id):
     with open('annotationsTry.json', 'w+') as f:
         json.dump(COCOGenesis, f, indent=4)
 
-    return id
+    return annotationId
 
 
 

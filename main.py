@@ -84,7 +84,7 @@ for numPage in range(34, 63):
 
 for file in os.listdir("test2019/"):
     os.rename("test2019/{file}".format(file=file), "test2019/{file}".format(file=file.zfill(9)))
-
+"""
 utils.COCOdataset()
 
 id = 0
@@ -95,7 +95,7 @@ for x in range(29, 34, 1):
     else:
         cutWidthLeft = 470
         cutWidthRight = 430
-    id = utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutHeight=250, id=id)
+    id = utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutWidthRight=cutWidthRight, cutHeight=250, annotationId=id)
 """
 angs = {}
 for x in range(34, 63):
@@ -112,4 +112,4 @@ for x in range(34, 63):
 #             Dopo, scommenta da "numImage = 1" fino a "zfill(9)". il ciclo dopo si occupa delle annotations, ma per il
 #             test non servono. Per il validation, aspetto i file caricati senza annotations, poi ci penso io! c:
 
-
+"""
