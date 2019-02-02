@@ -17,12 +17,12 @@ with open('JsonUtils/angles.json') as aj:
 
 # Variabile a True significa che e` possibile vedere le pagine singolarmente, altrimenti provvede a salvare le frequent
 # words nella apposita cartella (richiede qualche minuto)
-"""
-inspector = False
+
+inspector = True
 
 if inspector:
 
-    for numPage in range(14, 21):
+    for numPage in range(24, 34):
         binar.linesCropping('GenesisPages/old/Muenchen/Gut-0{x}.jpg'.format(x=numPage),
                             numPage,
                             '_P{x}_C0'.format(x=(numPage - 14)),
@@ -39,12 +39,11 @@ else:
     with open('JsonUtils/10mostFrequentWords.json') as fq:
         frequentWords = json.load(fq)
 
-    # Dizionario delle posizioni assolute rispetto alla pagina di ciascuna parola, per creare successivamente le
-    # annotazioni. La chiave piu` esterna rappresenta il numero di pagina che ha come valore un altro dizionario.
+    # inPagePositions: Dizionario delle posizioni assolute rispetto alla pagina di ciascuna parola, per creare
+    # successivamente le annotazioni. La chiave piu` esterna rappresenta il numero di pagina che ha come valore un altro
+    # dizionario.
     # Quest`ultimo ha come chiavi le parole frequenti e come valore una lista di tuple. Ciascuna di esse rappresenta
-    # la posizione all`interno della pagina. Es: "et": [(p1, p2, p3, p4), (p5, p6, p7, p8)...] (i punti sono presi
-    # partendo dall`alto, da sinista a destra.
-
+    # la posizione all`interno della pagina. Es: "et": [(xTopLeft, yTopLeft, width, height), ...]
     inPagePositions = dict()
 
     for frequentWord in frequentWords:
@@ -76,14 +75,15 @@ else:
     with open('inPagePositions.json', 'w') as pp:
         json.dump(inPagePositions, pp)
 
-
-
+"""
 numImage = 1
 for numPage in range(34, 63):
     numImage = utils.splitColumns('GenesisPages/old/MuenchenRotated/Gut-{x}.png'.format(x=numPage), numPage, numImage)
 
 for file in os.listdir("test2019/"):
     os.rename("test2019/{file}".format(file=file), "test2019/{file}".format(file=file.zfill(9)))
+"""
+
 """
 utils.COCOdataset()
 
@@ -96,6 +96,8 @@ for x in range(29, 34, 1):
         cutWidthLeft = 470
         cutWidthRight = 430
     id = utils.setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutWidthRight=cutWidthRight, cutHeight=250, annotationId=id)
+"""
+
 """
 angs = {}
 for x in range(34, 63):

@@ -1,6 +1,5 @@
 import cv2 as cv
 import os
-#import imutils
 import numpy as np
 import math
 import scipy
@@ -111,9 +110,6 @@ class Binarizer:
         user = ' '
 
         img = cv.imread(image_path)
-        cropped = cv.imread('cropped.png')
-        cropped2 = cv.imread('cropped2.png')
-        cropped2 = cv.imread('cropped4.png')
 
         # Converte l'immagine in scala di grigi
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -186,11 +182,11 @@ class Binarizer:
 
         # traccia semplicemente la linea, del colore desiderato
         rotated = cv.cvtColor(rotated, cv.COLOR_GRAY2BGR)
-        #for y in uppers:
-        #    cv.line(rotated, (0, y), (W, y), (255, 0, 0), 1)
+        for y in uppers:
+            cv.line(rotated, (0, y), (W, y), (255, 0, 0), 1)
 
-        #for y in lowers:
-        #    cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
+        for y in lowers:
+            cv.line(rotated, (0, y), (W, y), (0, 255, 0), 1)
 
         # Pagine dispari con colonne non tagliate bene
         if (len(columns) is not 4 and (nPage % 2) is 1):
@@ -224,16 +220,13 @@ class Binarizer:
             cv.imshow(firstColumn, leftColumn)
             cv.imshow(secondColumn, rightColumn)
 
-        # Decommentare per salvare la pagina intera con line segmentation
-        #cv.imwrite('GenesisPages/old/MuenchenLineSegmentation/Gut-{nPage}.png'.format(nPage=nPage), rotated)
-        #return
-
         xBegin = []
         xEnd = []
+
         # Colonna di sinistra
         j = 0
         for i in range(len(uppers)):
-            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], cropped, cropped2, j,
+            listBegin, listEnd, j = self.wordSegmentation(leftColumn[uppers[i]: lowers[i], :], j,
                                                           dictionary, firstColumn, user, wordPositions, frequentWord,
                                                           offsetX=columns[0], offsetY=uppers[i],
                                                           lineThickness=(lowers[i] - uppers[i]),
@@ -242,13 +235,11 @@ class Binarizer:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
 
-        #cv.imshow(secondColumn, rightColumn)
-        #cv.waitKey(0)
 
         # Colonna di destra
         j = 0
         for i in range(len(uppers)):
-            listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], cropped, cropped2, j,
+            listBegin, listEnd, j = self.wordSegmentation(rightColumn[uppers[i]: lowers[i], :], j,
                                                           dictionary, secondColumn, user, wordPositions, frequentWord,
                                                           offsetX=columns[2],offsetY=uppers[i],
                                                           lineThickness=(lowers[i] - uppers[i]),
@@ -257,6 +248,8 @@ class Binarizer:
                 xBegin.append(listBegin)
                 xEnd.append(listEnd)
 
+    # Sapendo che le righe si trovano quasi sempre alla stessa distanza, se mi accorgo che la distanza tra due trovate
+    # e` troppo grande, ne traccio una a mano.
 
     def lineRepairUnder(self, uppers, lowers, th):
 
@@ -280,8 +273,8 @@ class Binarizer:
             except IndexError:
                 break
 
-    def wordSegmentation(self, line, cropped, cropped2, i, dictionary, nColumn, user, wordPositions, frequentWord,
-                         offsetX, offsetY, lineThickness, inPagePosition, nPage):
+    def wordSegmentation(self, line, i, dictionary, nColumn, user, wordPositions, frequentWord, offsetX, offsetY,
+                         lineThickness, inPagePosition, nPage):
 
         # A questo punto dobbiamo fare un'istogramma proiettando verticalmente. Pero' va fatto PER OGNI riga trovata
         # in precedenza... Si puo' utilizzare anche la funzione reduce come in precedenza, ma non mi tornava e quindi
@@ -311,8 +304,6 @@ class Binarizer:
         listBegin.sort()
         listEnd.sort()
 
-        # Stampa a schermo tagliando la riga con i valori ottenuti
-
         try:
             wordsInLine = dictionary[nColumn][i]
         except IndexError:
@@ -327,9 +318,6 @@ class Binarizer:
         for j in range(len(listBegin)):
             try:
                 word = line[:, listBegin[j]: listEnd[j]]
-                """cv.rectangle(line, (listBegin[j], 0), (listEnd[j], 5), (0, 255, 0), thickness=1)
-                cv.imshow('dots', line)
-                cv.waitKey(0)"""
             except IndexError:
                 break
 
@@ -347,11 +335,14 @@ class Binarizer:
                                word)
 
                     # Si appende una quadrupla del tipo xTopLeft, yTopLeft, Width, Height
-                    inPagePosition[nPage][frequentWord].append((offsetX + listBegin[j], offsetY, listEnd[j] - listBegin[j], lineThickness))
+                    inPagePosition[nPage][frequentWord].append((offsetX + listBegin[j], offsetY,
+                                                                listEnd[j] - listBegin[j], lineThickness))
         i += 1
 
         return listBegin, listEnd, i
 
+    # Funzione che genera un istogramma contando i pixel non neri. Picchi di bianchi corrispondono a molto testo scritto
+    # in quella determinata colonna.
 
     def histogram(self, image):
 
@@ -387,6 +378,10 @@ class Binarizer:
 
         return histogram
 
+
+    # Funzione che prende un immagine, la binarizza e cerca le componenti connesse. Decide di elimare le componenti
+    # connesse piccole (calimero), cioe` con area inferiore ad una certa soglia, colorandole semplicemente come lo
+    # sfondo.
 
     def calimero(self, image):
 
@@ -460,6 +455,7 @@ class Binarizer:
             orderedList = sorted(listDiff)
 
         return listBegin, listEnd
+
 
     def getRotationMatrix(self, center, angle, scale):
 
@@ -586,4 +582,3 @@ class Binarizer:
         os.remove('tmp/{img_name}.png'.format(img_name=img_path))
 
         return rotationAngle
-
