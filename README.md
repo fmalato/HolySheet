@@ -35,10 +35,11 @@ Finally, we repeat the histogram and we affine the results through another metho
 spotting the periods and the full stops. This way we obtain the single word segmentation.
 
 <div align="center>
+<div>
 <img src="demoImages/binarizedWord.png"/>
 
-<b>Word</b> segmentation
-
+<b>Word</b> segmentation.
+</div>
 </div>
 
 Moreover the software can split the images into sub-images and generate the annotations for them, making them suitable 
