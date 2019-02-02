@@ -21,7 +21,7 @@ OpenCV's threshold() method, our image becomes binarized.
 
 Original <b>Genesis</b> image and his binarization. 
 </div>
-After that, we make a histogram so that we can obtain a segmentation of the single line.
+Then, we make a histogram so that we can obtain a segmentation of the single line.
 
 <div align="center">
 
