@@ -35,6 +35,7 @@ Finally, we repeat the histogram and we affine the results through another metho
 spotting the periods and the full stops. This way we obtain the single word segmentation.
 
 <div align="center">
+
 <div>
 <img src="demoImages/binarizedWord.png"/>
 
