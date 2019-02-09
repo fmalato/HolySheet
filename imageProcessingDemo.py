@@ -1,6 +1,4 @@
 import binarizer as bin
-import utils
-import stringUtils
 import os
 
 import json
@@ -18,7 +16,7 @@ with open('JsonUtils/angles.json') as aj:
 # Variabile a True significa che e` possibile vedere le pagine singolarmente, altrimenti provvede a salvare le frequent
 # words nella apposita cartella (richiede qualche minuto)
 
-inspector = True
+inspector = False
 
 if inspector:
 
@@ -36,7 +34,7 @@ if inspector:
 
 
 else:
-    with open('JsonUtils/10mostFrequentWords.json') as fq:
+    with open('JsonUtils/20mostFrequentWords.json') as fq:
         frequentWords = json.load(fq)
 
     # inPagePositions: Dizionario delle posizioni assolute rispetto alla pagina di ciascuna parola, per creare

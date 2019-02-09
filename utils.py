@@ -51,14 +51,14 @@ def splitColumns(image_path, nPage, numImage):
     return numImage
 
 
-def COCOdataset():
+def COCOdataset(typeDataset, imageId):
 
     with open('annotationsTry.json') as instances:
         COCOGenesis = json.load(instances)
 
     id = 0
-    for file in sorted(os.listdir('valid2019/')):
-        img = cv.imread('valid2019/{file}'.format(file=file))
+    for file in sorted(os.listdir(typeDataset + '/')):
+        img = cv.imread(typeDataset + '/{file}'.format(file=file))
         height, width = img.shape[:2]
         COCOGenesis["images"].append({"license": 1,
                                       "file_name": file,
@@ -67,14 +67,14 @@ def COCOdataset():
                                       "width": width,
                                       "date_captured": "Today",
                                       "flickr_url": "",
-                                      "id": 188000+id})
+                                      "id": imageId + id})
         id += 1
 
     with open('annotationsTry.json', 'w') as instances:
         json.dump(COCOGenesis, instances, indent=4)
 
 
-def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight, annotationId):
+def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight, annotationId, imageId):
 
     numCuts = 5
 
@@ -104,7 +104,7 @@ def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight, annotationId):
                                                           "segmentation": [[posX, posY, posX + coord[2], posY,
                                                                             posX + coord[2], posY +coord[3],
                                                                             posX, posY + coord[3]]],
-                                                          "image_id": (nPage - 14)*10 + pagePos + 188000,
+                                                          "image_id": (nPage - 14)*10 + pagePos + imageId,
                                                           "area": coord[2]*coord[3],
                                                           "bbox": [posX, posY, coord[2], coord[3]]})
                         annotationId += 1
@@ -122,7 +122,7 @@ def setAnnotations(nPage, cutWidthLeft, cutWidthRight, cutHeight, annotationId):
                                                           "segmentation": [[posX, posY, posX + coord[2], posY,
                                                                             posX + coord[2], posY +coord[3],
                                                                             posX, posY + coord[3]]],
-                                                          "image_id": (nPage - 14)*10 + pagePos + 188000,
+                                                          "image_id": (nPage - 14)*10 + pagePos + imageId,
                                                           "area": coord[2]*coord[3],
                                                           "bbox": [posX, posY, coord[2], coord[3]]})
                         annotationId += 1
@@ -164,7 +164,25 @@ def intersectionOverUnion(boxA, boxB):
 
 
 
+# A partire da delle cartelle gia` create (es. train2019), pensa a creare le annotazioni locali leggendo le pagine
+# giuste.
 
+def makeAnnotations(typeDataset, rangeBegin, rangeEnd, imageId):
 
+    COCOdataset(typeDataset, imageId)
 
+    id = 0
+    for x in range(rangeBegin, rangeEnd):
+        if x % 2 == 0:
+            cutWidthLeft = 450
+            cutWidthRight = 450
+        else:
+            cutWidthLeft = 470
+            cutWidthRight = 430
+        id = setAnnotations(nPage=x, cutWidthLeft=cutWidthLeft, cutWidthRight=cutWidthRight, cutHeight=250,
+                            annotationId=id, imageId=imageId)
 
+# come typeDataset: "train2019" oppure "valid2019", i range sono rispettivamente 14-29 e 29-34. imageId rappresenta
+# l'id univoco delle immagini (numero semi casuale a 6 cifre).
+
+#makeAnnotations("valid2019", 29, 34, imageId=122000)

@@ -105,24 +105,26 @@ def getDictWordPosition(lines, specificWord):
 
     return wordDict
 
-'''
-
+"""
 # Leggo il ground truth e me lo salvo in un file come dizionario json, per non stare a rileggerlo ad ogni esecuzione
 
 
 groundTruth = open("genesis1-20.txt", "r")
 lines = groundTruth.readlines()
 
-dictionary = getWordsCounterDict(lines)
+#dictionary = getWordsCounterDict(lines)
 
-with open('JsonUtils/groundTruthDictionary.json', 'w') as fp:
-    json.dump(dictionary, fp)
-
+#with open('JsonUtils/groundTruthDictionary.json', 'w') as fp:
+#    json.dump(dictionary, fp)
 
 #hist = histWords(lines)
 
+#mostFrequentWords = getNmostFrequentWords(hist, 20)
 
-with open('JsonUtils/10mostFrequentWords.json') as mf:
+#with open('JsonUtils/20mostFrequentWords.json', 'w') as fj:
+#    json.dump(mostFrequentWords, fj)
+
+with open('JsonUtils/20mostFrequentWords.json') as mf:
     mostFrequentWords = json.load(mf)
 
 # Dizionario che ha come chiave la tupla per ritrovare la parola nel testo, pagina e colonna, numero riga e numero di
@@ -136,4 +138,7 @@ for frequentWord in mostFrequentWords:
 
 
 print("Finished")
-'''
+
+
+"""
+
