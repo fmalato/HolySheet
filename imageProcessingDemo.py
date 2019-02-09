@@ -9,7 +9,7 @@ import cv2 as cv
 bible = 'Muenchen'
 binar = bin.Binarizer(bible)
 
-with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
+"""#with open('JsonUtils/groundTruthDictionary.json') as groundTruth:
     dictionary = json.load(groundTruth)
 
 with open('JsonUtils/angles.json') as aj:
@@ -73,4 +73,5 @@ else:
                                 )
 
     with open('inPagePositions.json', 'w') as pp:
-        json.dump(inPagePositions, pp)
+        json.dump(inPagePositions, pp)"""
+

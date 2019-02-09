@@ -2,6 +2,8 @@ import json
 import os
 import cv2
 
+import utils
+
 with open('results/bbox_genesis_2019_valid_results.json', 'r') as box:
     bboxes = json.load(box)
 
@@ -32,9 +34,19 @@ for img in annotations['images']:
                         org=(int(x['bbox'][0]), int(x['bbox'][1]) + int(x['bbox'][3] + 5)),
                         fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=0.4, color=(0, 0, 255))
 
-    #cv2.imshow('{image}'.format(image=img['file_name']), image)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+    # TODO: Controlla gli indici, il for fallisce
+    for box in range(min(len(bboxes['bbox']), len(annotations['annotations']))):
+        boxA = bboxes[box]
+        boxB = annotations[box]
+        iou = utils.intersectionOverUnion(boxA, boxB)
+        cv2.putText(img=image, text=str(iou),
+                    org=(int(boxA['bbox'][0]), int(x['bbox'][1]) + int(x['bbox'][3] + 5)),
+                    fontFace=cv2.FONT_HERSHEY_DUPLEX, fontScale=0.4, color=(255, 0, 255))
+
+
+    cv2.imshow('{image}'.format(image=img['file_name']), image)
+    cv2.waitKey(100000)
+    cv2.destroyAllWindows()
 
     cv2.imwrite('results/comparisons/comp_{n}'.format(n=img['file_name']), image)
 
