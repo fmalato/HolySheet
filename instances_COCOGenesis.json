@@ -5,7 +5,7 @@
     "version": "1.0",
     "year": 2019,
     "contributor": "Francesco Gradi and Federico Malato",
-    "date_created": "2017/29/01"
+    "date_created": "2019/9/02"
   },
   "licenses": [
     {
@@ -26,9 +26,18 @@
     {"supercategory": "word","id": 4,"name": "de"},
     {"supercategory": "word","id": 5,"name": "Deus"},
     {"supercategory": "word","id": 6,"name": "autem"},
-    {"supercategory": "word","id": 7,"name": "quae"},
-    {"supercategory": "word","id": 8,"name": "terra"},
-    {"supercategory": "word","id": 9,"name": "super"},
-    {"supercategory": "word","id": 10,"name": "non"}
+    {"supercategory": "word","id": 7,"name": "terra"},
+    {"supercategory": "word","id": 8,"name": "quae"},
+    {"supercategory": "word","id": 9,"name": "sunt"},
+    {"supercategory": "word","id": 10,"name": "super"},
+    {"supercategory": "word","id": 11,"name": "qui"},
+    {"supercategory": "word","id": 12,"name": "eius"},
+    {"supercategory": "word","id": 13,"name": "non"},
+    {"supercategory": "word","id": 14,"name": "cum"},
+    {"supercategory": "word","id": 15,"name": "quod"},
+    {"supercategory": "word","id": 16,"name": "ut"},
+    {"supercategory": "word","id": 17,"name": "terram"},
+    {"supercategory": "word","id": 18,"name": "Dominus"},
+    {"supercategory": "word","id": 19,"name": "genuit"}
   ]
 }
