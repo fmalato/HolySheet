@@ -1,0 +1,11 @@
+{
+    "numDetections": 657,
+    "numAnnotations": 469,
+    "numFound": 378,
+    "numNotFound": 27,
+    "numCompared": 405,
+    "percentageFound": 93.33,
+    "percentageNotFound": 6.67,
+    "netCorrections": 252,
+    "groundTruthCorrections": 64
+}
