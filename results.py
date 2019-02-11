@@ -1,9 +1,10 @@
 import json
 import cv2
+import os
 
 import utils
 
-with open('results/bbox_genesis_2019_valid_results.json', 'r') as box:
+with open('results/bbox_genesis_2019_valid_results60000.json', 'r') as box:
     bboxes = json.load(box)
 
 with open('results/genesis_valid_2019.json', 'r') as ann:
@@ -21,7 +22,8 @@ numAnnotations = 0
 
 for img in annotations['images']:
     image = cv2.imread('valid2019/{image_name}'.format(image_name=img['file_name']))
-    image_id = int(img['file_name'].strip('.png')) + 188000
+    image_id = int(img['file_name'].strip('.png')) + 188000  # Use it with 11 words
+    #image_id = int(img['file_name'].strip('.png')) + 122000  # Use it with 20 words
     boundingBoxes[image_id] = {}
     boundingBoxes[image_id]['bboxes'] = []
     boundingBoxes[image_id]['annotations'] = []
@@ -73,12 +75,17 @@ for img in annotations['images']:
                         numCompared += 1
                         break
 
-    #cv2.imwrite('results/comparisons/comp_{n}'.format(n=img['file_name']), image)
+    if not os.path.exists('results'):
+        os.mkdir('results')
+    if not os.path.exists('results/comparisons_11_60000'):
+        os.mkdir('results/comparisons_11_60000')
+    cv2.imwrite('results/comparisons_11_60000/comp_{n}'.format(n=img['file_name']), image)
 
 percentageFound = round((numFound / numCompared) * 100, 2)
 percentageNotFound = round((numNotFound / numCompared) * 100, 2)
 netCorrections = numDetections - numCompared
 gTruthCorrections = numAnnotations - numCompared
+accuracy = round((1 - (gTruthCorrections / numAnnotations)) * 100, 2)
 
 print('numDetections: {x}'.format(x=numDetections))
 print('numAnnotations: {x}'.format(x=numAnnotations))
@@ -89,6 +96,7 @@ print('percentage of found items: {x}%'.format(x=percentageFound))
 print('percentage of not found items: {x}%'.format(x=percentageNotFound))
 print('words found by the net but not shown in the ground truth: {x}'.format(x=netCorrections))
 print('words shown in the ground truth but not found by the net: {x}'.format(x=gTruthCorrections))
+print('net accuracy on given data is: {x}%'.format(x=accuracy))
 
 analytics = {}
 analytics['numDetections'] = numDetections
@@ -100,8 +108,9 @@ analytics['percentageFound'] = percentageFound
 analytics['percentageNotFound'] = percentageNotFound
 analytics['netCorrections'] = netCorrections
 analytics['groundTruthCorrections'] = gTruthCorrections
+analytics['accuracy'] = accuracy
 
-with open('analytics.json', 'w+') as f:
+with open('analytics/analytics_11_words_60000.json', 'w+') as f:
     json.dump(analytics, f, indent=4)
 
 
