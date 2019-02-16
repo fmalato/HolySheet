@@ -7,5 +7,6 @@
     "percentageFound": 93.33,
     "percentageNotFound": 6.67,
     "netCorrections": 252,
-    "groundTruthCorrections": 64
+    "groundTruthCorrections": 64,
+    "accuracy": 86.35
 }
